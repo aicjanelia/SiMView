@@ -1,11 +1,11 @@
-function [wavelength, zStep, mag, dimensions] = ParseXML(filePath)
+function [wavelength, zStep, mag, dimensions, datasetName] = ParseXML(filePath)
     f = fopen(filePath,'r');
     fstring = '';
     while (~feof(f))
         curLine = fgets(f);
         pos = strfind(curLine,'&');
         newLine = curLine;
-        if (~isempty(pos))
+        if (~isempty(pos) && ~strcmpi(curLine(pos+1:pos+3),'amp'))
             newLine = [curLine(1:pos),'amp;',curLine(pos+1:end)];
         end
         fstring = [fstring,newLine];
@@ -38,6 +38,9 @@ function [wavelength, zStep, mag, dimensions] = ParseXML(filePath)
         if (isfield(att,'dimensions'))
             tok = regexpi(att.dimensions,'(\d+)x(\d+)x(\d+)','tokens');
             dimensions = cellfun(@(x)(str2double(x)),tok{1});
+        end
+        if (isfield(att,'data_header'))
+            datasetName = att.data_header;
         end
     end
 end
