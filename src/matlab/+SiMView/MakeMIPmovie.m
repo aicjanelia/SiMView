@@ -34,6 +34,8 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors)
         return
     end
 
+    fprintf(1,'Making movie %s...',prefix);
+    tic
     parfor t=1:imMeta.NumberOfFrames
         intensityImage = SiMView.GetImages(imMeta,structured,t);
         if(separateColors)
@@ -64,7 +66,6 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors)
         imwrite(imOrtho,fullfile(frameDir,sprintf('%s_%04d.tif',prefix,t)));
     end
 
-
     if (imMeta.NumberOfFrames<10)
         return
     end
@@ -81,4 +82,5 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors)
     end
 
     copyfile(fullfile(frameDir,[prefix,'_','.mp4']),movieDir);
+    fprintf(1,'took %s\n',Utils.PrintTime(toc));
 end
