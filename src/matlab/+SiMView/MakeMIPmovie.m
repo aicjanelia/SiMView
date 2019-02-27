@@ -8,6 +8,10 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors)
     end
 
     [imMeta,structured] = SiMView.GetMetadata(fullfile(rootDir,subDirectory));
+    
+    if (separateColors && imMeta.NumberOfLightSheets<2 && imMeta.NumberOfCameras<2)
+        return
+    end
 
     colorsStd = [0,1,0;1,0,1;0,1,1;1,0,0;1,1,0;0,0,1];
     
