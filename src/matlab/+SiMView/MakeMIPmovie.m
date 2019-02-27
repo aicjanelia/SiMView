@@ -15,7 +15,9 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors)
 
     colorsStd = [0,1,0;1,0,1;0,1,1;1,0,0;1,1,0;0,0,1];
     
-    prefix = imMeta.DatasetName;
+    pos = regexp(subDirectory,filesep);
+    prefix = subDirectory;
+    prefix(pos) = '_';
     frameDir = fullfile(rootDir,subDirectory,'movieFrames');
     if (separateColors)
         prefix = [prefix,'_sepColors'];
