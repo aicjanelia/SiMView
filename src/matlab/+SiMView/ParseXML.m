@@ -15,7 +15,7 @@ function [wavelength, zStep, mag, dimensions, datasetName] = ParseXML(filePath)
     fprintf(f,fstring);
     fclose(f);
 
-    metadata = xml2struct(filePath);
+    metadata = Utils.xml2struct(filePath);
     metadata = metadata.push_config.info;
 
     zStep = [];
