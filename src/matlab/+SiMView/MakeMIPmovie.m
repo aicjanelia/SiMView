@@ -1,10 +1,18 @@
-function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors)
+function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors,fps,maxSec)
 
+    writeFiles = false;
     if (~exist('overwrite','var') || isempty(overwrite))
         overwrite = false;
     end
     if (~exist('separateColors','var') || isempty(separateColors))
         separateColors = false;
+    end
+    dynamicFPS = true;
+    if (exist('fps','var') && ~isempty(fps))
+        dynamicFPS = false;
+    end
+    if (~exist('maxSec','var') && ~isempty(maxSec))
+        maxSec = inf;
     end
 
     [imMeta,structured] = SiMView.GetMetadata(fullfile(rootDir,subDirectory));
@@ -26,61 +34,80 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors)
 
     if (~exist(frameDir,'dir'))
         mkdir(frameDir);
+        writeFiles = true;
     elseif (overwrite)
         rmdir(frameDir,'s');
         pause(5)
         mkdir(frameDir);
-    else
+        writeFiles = true;
+    elseif (dynamicFPS)
         return
     end
-
-    fprintf(1,'Making movie %s...',prefix);
+    
     tic
-    parfor t=1:imMeta.NumberOfFrames
-        intensityImage = SiMView.GetImages(imMeta,structured,t);
-        if(separateColors)
-            curIm = intensityImage(:,:,:,1,:,1);
-            for cm = 2:size(intensityImage,6)
-                curIm = cat(4,curIm,intensityImage(:,:,:,1,:,cm));
+    fprintf(1,'Making movie %s...',prefix);
+    if (writeFiles)   
+        for t=1:imMeta.NumberOfFrames
+%         parfor t=1:imMeta.NumberOfFrames
+            intensityImage = SiMView.GetImages(imMeta,structured,t);
+            if(separateColors)
+                curIm = intensityImage(:,:,:,1,:,1);
+                for cm = 2:size(intensityImage,6)
+                    curIm = cat(4,curIm,intensityImage(:,:,:,1,:,cm));
+                end
+            else
+                curIm = SiMView.CombineChannelPairs(intensityImage);
+                curIm = SiMView.CombineCameras(curIm);
             end
-        else
-            curIm = SiMView.CombineChannelPairs(intensityImage);
-            curIm = SiMView.CombineCameras(curIm);
+            
+            if (size(curIm,4)==1)
+                colors = [1,1,1];
+            else
+                colors = colorsStd(1:size(curIm,4),:);
+            end
+            
+            imOrtho = ImUtils.MakeOrthoSliceProjections(curIm,colors,imMeta.PixelPhysicalSize(1),imMeta.PixelPhysicalSize(3));
+            
+            sz = size(imOrtho);
+            if (sz(1)>sz(2))
+                imOrtho = imrotate(imOrtho,90);
+            end
+            imOrtho = imresize(imOrtho,[1080,NaN]);
+            imOrtho = ImUtils.MakeImageXYDimEven(imOrtho);
+            
+            imwrite(imOrtho,fullfile(frameDir,sprintf('%s_%04d.tif',prefix,t)));
         end
-
-        if (size(curIm,4)==1)
-            colors = [1,1,1];
-        else
-            colors = colorsStd(1:size(curIm,4),:);
+        
+        if (imMeta.NumberOfFrames<10)
+            return
         end
-
-        imOrtho = ImUtils.MakeOrthoSliceProjections(curIm,colors,imMeta.PixelPhysicalSize(1),imMeta.PixelPhysicalSize(3));
-
-        sz = size(imOrtho);
-        if (sz(1)>sz(2))
-            imOrtho = imrotate(imOrtho,90);
-        end
-        imOrtho = imresize(imOrtho,[1080,NaN]);
-        imOrtho = ImUtils.MakeImageXYDimEven(imOrtho);
-
-        imwrite(imOrtho,fullfile(frameDir,sprintf('%s_%04d.tif',prefix,t)));
+        
+        fps = min(60,max(imMeta.NumberOfFrames)/10);
+        fps = max(fps,7);
+        fps = round(fps);
     end
-
-    if (imMeta.NumberOfFrames<10)
+    
+    maxFrame = imMeta.NumberOfFrames;
+    lengthSec = imMeta.NumberOfFrames/fps;
+    if (lengthSec>maxSec)
+        maxFrame = ceil(fps*maxSec);
+    end
+    
+    if (isempty(maxFrame) || maxFrame<20)
+        fprintf('Skipping\n');
         return
     end
 
-    fps = min(60,max(imMeta.NumberOfFrames)/10);
-    fps = max(fps,7);
-    fps = round(fps);
-
-    MovieUtils.MakeMP4_ffmpeg(1,imMeta.NumberOfFrames,frameDir,fps,[prefix,'_']);
+    MovieUtils.MakeMP4_ffmpeg(1,maxFrame,frameDir,fps,[prefix,'_']);
+    
+    prefixFPS = sprintf('%s_%dfps_',prefix,fps);
+    movefile(fullfile(frameDir,[prefix,'_','.mp4']),fullfile(frameDir,[prefixFPS,'.mp4']));
 
     movieDir = fullfile(rootDir,'MIPmovies');
     if (~exist(movieDir,'dir'))
         mkdir(movieDir);
     end
 
-    copyfile(fullfile(frameDir,[prefix,'_','.mp4']),movieDir);
-    fprintf(1,'took %s\n',Utils.PrintTime(toc));
+    copyfile(fullfile(frameDir,[prefixFPS,'.mp4']),movieDir);
+    fprintf(1,'took %s\n',Utils.PrintTime(toc,imMeta.NumberOfFrames));
 end
