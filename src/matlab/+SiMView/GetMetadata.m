@@ -21,8 +21,8 @@ function [imMetadata, structured] = GetMetadata(rootDir)
             fileType = 'tif';
         else
             fileType = '';
+            structured = true;
         end
-        structured = true;
         cams = Utils.GetNumsFromFiles(rootDir,'CM(\d+)','tif');
     else
         cams = Utils.GetNumsFromFiles(rootDir,'CM(\d+)','stack');
@@ -32,21 +32,23 @@ function [imMetadata, structured] = GetMetadata(rootDir)
     wavelengths = [];
     colors = [];
     if (~structured)
+        chans = Utils.GetNumsFromFiles(rootDir,'ch(\d)','xml');
+        [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'ch0.xml'));
+        
+        for c=unique(chans)
+            wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(rootDir,sprintf('ch%d.xml',c))));
+            colors = vertcat(colors,colorsStd(c+1,:));
+        end
         switch fileType
             case 'stack'
                 frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','stack');
-                chans = Utils.GetNumsFromFiles(rootDir,'ch(\d)','xml');
-                [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'ch0.xml'));
-                
-                for c=unique(chans)
-                    wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(rootDir,sprintf('ch%d.xml',c))));
-                    colors = vertcat(colors,colorsStd(c+1,:));
-                end
             case 'tif'
+                frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','tif');
             otherwise
                 error('Malformed directory')
         end
     else
+        error('TODO deal with structured data');
     end
     
     if (length(wavelengths)==1)
