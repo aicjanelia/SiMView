@@ -3,6 +3,9 @@ function MakeProjectionMovie(rootDir,subPath,datasetName,overwrite,colorTwoSheet
 % datasetName = 'HRWtip-Actn4-st13_Embryo1_Run1_OneSheet_Tiff_20181129_112401-ok';
 % xyPhysicalSize = 0.325;
 % zPhysicalSize = 2.031;
+
+    colorsStd = [0,1,0;1,0,1;0,1,1;1,0,0;1,1,0;0,0,1];
+    
     if (~exist('overwrite','var') || isempty(overwrite))
         overwrite = false;
     end
@@ -11,56 +14,68 @@ function MakeProjectionMovie(rootDir,subPath,datasetName,overwrite,colorTwoSheet
     end
     
     curRootDir = fullfile(rootDir,subPath);
+    isUnstructured = false;
+    isStack = false;
+    spmDir = [];
+    frameDir = [];
+    chanDir = [];
+    angDirs = [];
+    
+    dList = dir(fullfile(curRootDir,'*.stack'));
+    if (~isempty(dList))
+        isUnstructured = true;
+        isStack = true;
+    else
+        dList = dir(fullfile(curRootDir,'*.tif'));
+        if (~isempty(dList))
+            isUnstructured = true;
+        end
+    end
 
-    [spms,spmDir] = Utils.GetNumsFromDirs(curRootDir,'SPM(\d+)');
-    if (isempty(spms))
-        warning('No SPM directory in %s',rootDir);
-        return
+    wavelengths = [];
+    colors = [];
+    if (~isUnstructured)
+        [spms,spmDir] = Utils.GetNumsFromDirs(curRootDir,'SPM(\d+)');
+        
+        if (~isempty(spmDir))
+            [frames,frameDir] = Utils.GetNumsFromDirs(fullfile(curRootDir,spmDir(1).name),'TM(\d+)');
+        end
+        
+        if (~isempty(frameDir))
+            [chans,chanDir] = Utils.GetNumsFromFiles(fullfile(curRootDir,spmDir(1).name,frameDir(1).name),'ch(\d)','xml');
+            
+            [~, zStep, mag,dimensions] = SiMView.ParseXML(fullfile(chanDir(1).folder,chanDir(1).name));
+            
+            for c=unique(chans)
+                wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(chanDir(c).folder,chanDir(c).name)));
+            end
+        end
+    else
+        if (isStack)
+            frames = Utils.GetNumsFromFiles(curRootDir,'TM(\d+)','stack');
+        else
+            frames = Utils.GetNumsFromFiles(curRootDir,'TM(\d+)','tif');
+        end
+        chans = Utils.GetNumsFromFiles(curRootDir,'ch(\d)','xml');
+        [~, zStep, mag,dimensions] = SiMView.ParseXML(fullfile(curRootDir,'ch0.xml'));
+        
+        for c=unique(chans)
+            wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(curRootDir,sprintf('ch%d.xml',c))));
+            colors = vertcat(colors,colorsStd(c+1,:));
+        end
     end
     
-    [frames,frameDir] = Utils.GetNumsFromDirs(fullfile(curRootDir,spmDir(1).name),'TM(\d+)');
-    if (isempty(frames))
-        warning('No TM directory in %s',fullfile(curRootDir,spmDir(1).name));
-        return
-    end
-%     if (length(frames)<20)
-%         fprintf('%s is too short for a movie\n',curRootDir);
-%         return
-%     end
-    [chans,chanDir] = Utils.GetNumsFromFiles(fullfile(curRootDir,spmDir(1).name,frameDir(1).name),'ch(\d)','xml');
-    if (isempty(chans))
-        warning('No chan files in %s',fullfile(curRootDir,spmDir(1).name,frameDir(1).name));
-        return
+    if (length(wavelengths)==1)
+        colors = [1,1,1];
     end
     
-    [~, zStep, mag,dimensions] = SiMView.ParseXML(fullfile(chanDir(1).folder,chanDir(1).name));
     xyPhysicalSize = 6.5 / mag;
     zPhysicalSize = zStep;
-    colorsStd = [0,1,0;1,0,1;0,1,1;1,0,0;1,1,0;0,0,1];
-    colors = [];
-    wavelengths = [];
-    numColorsUsed = 0;
-    for i=1:length(chans)
-        wavelength = SiMView.ParseXML(fullfile(chanDir(i).folder,chanDir(i).name));
-        ind = find(wavelengths == wavelength,1,'first');
-        if (isempty(ind) || colorTwoSheets)
-            numColorsUsed = numColorsUsed +1;
-            curColor = colorsStd(numColorsUsed,:);
-        else
-            curColor = colors(ind,:);
-        end
-        wavelengths = [wavelengths;wavelength];
-        colors = vertcat(colors,curColor);
-    end
 
     numChans = max(chans) +1;
-    [angs, angDirs] = Utils.GetNumsFromDirs(fullfile(curRootDir,spmDir(1).name,frameDir(1).name),'ANG(\d+)');
-    if (isempty(angs))
-        warning('No ANG directory in %s',fullfile(curRootDir,spmDir(1).name,frameDir(1).name));
-        return
+    if (~isempty(frameDir))
+        [angs, angDirs] = Utils.GetNumsFromDirs(fullfile(curRootDir,spmDir(1).name,frameDir(1).name),'ANG(\d+)');
     end
-    
-    numPlanes = 1+ max(Utils.GetNumsFromFiles(fullfile(curRootDir,spmDir(1).name,frameDir(1).name,angDirs(1).name),'PLN(\d+)','tif'));
 
     prgs = Utils.CmdlnProgress(length(spms)*length(angs)*length(frames),true,sprintf('Making movies for %s',datasetName));
     prgs.PrintProgress(0);
