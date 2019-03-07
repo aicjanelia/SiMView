@@ -74,7 +74,7 @@ function [imMetadata, structured] = GetMetadata(rootDir)
     %% set output
     imMetadata.ChannelColors =  colors;
     imMetadata.ChannelNames = wavelengths;
-    imMetadata.Dimensions = Utils.SwapXY_RC(dimensions);
+    imMetadata.Dimensions = dimensions;
     imMetadata.NumberOfChannels = numChans;
     imMetadata.NumberOfFrames = numFrames;
     imMetadata.PixelPhysicalSize = [xyPhysicalSize,xyPhysicalSize,zPhysicalSize];
