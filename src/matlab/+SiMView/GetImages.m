@@ -17,28 +17,41 @@ function im = GetImages(imMetadata,structured,frames,chans,cameras)
         cameras = 1:imMetadata.NumberOfCameras;
     end
     
+    isStack = true;
     if (~structured)
         dList = dir(fullfile(imMetadata.imageDir,'*.stack'));
         if (~isempty(dList))
             ext = 'stack';
         else
+            dList = dir(fullfile(imMetadata.imageDir,'*.tif'));
             ext = 'tif';
+            isStack = false;
         end
-        [frameList,dList] = Utils.GetNumsFromFiles(imMetadata.imageDir,'TM(\d+)',ext);
-        chanList = Utils.GetNumsFromFiles(imMetadata.imageDir,'CHN(\d+)',ext);
-        camList = Utils.GetNumsFromFiles(imMetadata.imageDir,'CM(\d+)',ext);
-        plnList = Utils.GetNumsFromFiles(imMetadata.imageDir,'PLN(\d+)',ext);
+        
+        dNames = {dList.name}';
+        [~,frameMask] = Utils.GetNumFromStr(dNames,'TM(\d+)');
+        [~,chanMask] = Utils.GetNumFromStr(dNames,'CHN(\d+)');
+        [~,camMask] = Utils.GetNumFromStr(dNames,'CM(\d+)');
+        if (~isStack)
+            [~,plnMask] = Utils.GetNumFromStr(dNames,'PLN(\d+)');
+        else
+            plnMask = true(size(frameMask));
+        end
+        
+        useFileMask = frameMask & chanMask & camMask & plnMask;
+        dList = dList(useFileMask);
+        
+        dNames = {dList.name}';
+        frameList = Utils.GetNumFromStr(dNames,'TM(\d+)');
+        chanList = Utils.GetNumFromStr(dNames,'CHN(\d+)');
+        camList = Utils.GetNumFromStr(dNames,'CM(\d+)');
+        plnList = Utils.GetNumFromStr(dNames,'PLN(\d+)');
         
         if (isempty(plnList))
             plnList = false(size(frameList));
         end
         
-        frameMask = frameList==frames(1)-1;
-        chanMask = chanList==chans(1)-1;
-        camMask = camList==cameras(1)-1;
-        plnMask = plnList==0;
-        
-        filePath = fullfile(imMetadata.imageDir,dList(frameMask & chanMask & camMask & plnMask).name);
+        filePath = fullfile(imMetadata.imageDir,dList(1).name);
         
         switch ext
             case 'stack'
@@ -60,7 +73,7 @@ function im = GetImages(imMetadata,structured,frames,chans,cameras)
                     
                     switch ext
                         case 'stack'
-                            fMask = frameMask & chanMask & camMask;
+                            fMask = frameMask & chanMask & camMask & useFileMask';
                             if (~any(fMask))
                                 continue
                             end
