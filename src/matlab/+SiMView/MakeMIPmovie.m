@@ -11,7 +11,7 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors,fps,maxSec)
     if (exist('fps','var') && ~isempty(fps))
         dynamicFPS = false;
     end
-    if (~exist('maxSec','var') && ~isempty(maxSec))
+    if (~exist('maxSec','var') || isempty(maxSec))
         maxSec = inf;
     end
 
