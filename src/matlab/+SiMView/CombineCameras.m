@@ -6,9 +6,9 @@ function imC = CombineCameras(im)
     end
     
     sz = size(im);
-    imC = zeros(sz(1:5),'single');
+    imC = zeros(sz(1:5),'like',im);
     for cm=1:size(im,6)
-        curIm = mat2gray(im(:,:,:,:,:,cm));
+        curIm = im(:,:,:,:,:,cm);
         mask = curIm>imC;
         imC(mask) = curIm(mask);
     end
