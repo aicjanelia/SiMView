@@ -1,14 +1,10 @@
 function imC = CombineCameras(im)
-
-    if (size(im,6)==1)
-        imC = im;
-        return
-    end
-    
-    sz = size(im);
-    imC = zeros(sz(1:5),'like',im);
-    for cm=1:size(im,6)
+    imC = im(:,:,:,:,:,1);
+    for cm=2:size(im,6)
         curIm = im(:,:,:,:,:,cm);
+        if (mod(cm,2)==0)
+            curIm = curIm(:,end:-1:1,:,:,:);
+        end
         mask = curIm>imC;
         imC(mask) = curIm(mask);
     end
