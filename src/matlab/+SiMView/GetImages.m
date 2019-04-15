@@ -29,12 +29,15 @@ function im = GetImages(imMetadata,structured,frames,chans,cameras)
         end
         
         dNames = {dList.name}';
+        projectionMask = cellfun(@isempty,regexpi(dNames,'projection','match'));
+        dList = dList(projectionMask);
+        dNames = {dList.name}';
         [~,frameMask] = Utils.GetNumFromStr(dNames,'TM(\d+)');
         [~,chanMask] = Utils.GetNumFromStr(dNames,'CHN(\d+)');
         [~,camMask] = Utils.GetNumFromStr(dNames,'CM(\d+)');
-        if (~isStack)
-            [~,plnMask] = Utils.GetNumFromStr(dNames,'PLN(\d+)');
-        else
+        [~,plnMask] = Utils.GetNumFromStr(dNames,'PLN(\d+)');
+        
+        if (~any(plnMask))
             plnMask = true(size(frameMask));
         end
         
