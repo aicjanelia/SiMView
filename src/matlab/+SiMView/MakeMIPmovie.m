@@ -52,9 +52,7 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors,fps,maxSec)
         maxFrame = ceil(fps*maxSec);
     end
     
-    if (isempty(maxFrame) || maxFrame<20)
-        return
-    elseif (~exist(frameDir,'dir'))
+    if (~exist(frameDir,'dir'))
         mkdir(frameDir);
         writeFiles = true;
     elseif (overwrite)
