@@ -40,7 +40,7 @@ function [imMetadata, structured] = GetMetadata(rootDir)
         else
             curDlist = dir(fullfile(rootDir,'*.tif'));
             if (~isempty(curDlist))
-                fileType = 'stack';
+                fileType = 'tif';
             else
                 error('Unknown filetype');
             end
