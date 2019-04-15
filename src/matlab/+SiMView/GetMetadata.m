@@ -14,41 +14,64 @@ function [imMetadata, structured] = GetMetadata(rootDir)
     fileType = 'stack';
     
     %% check for unstructured files in root
-    dList = dir(fullfile(rootDir,'*.stack'));
-    if (isempty(dList))
-        dList = dir(fullfile(rootDir,'*.tif'));
-        if (~isempty(dList))
-            fileType = 'tif';
+    curDlist = [];
+    spmList = dir(fullfile(rootDir,'SPM*'));
+    if (~isempty(spmList))
+        structured = true;
+        if (exist(fullfile(rootDir,'SPM00','TM00000','ANG000'),'dir'))
+            curDlist = dir(fullfile(rootDir,'SPM00','TM00000','ANG000','*.tif'));
+            if (~isempty(curDlist))
+                fileType = 'tif';
+            else
+                curDlist = dir(fullfile(rootDir,'SPM00','TM00000','ANG000','*.stack'));
+                if (~isempty(curDlist))
+                    fileType = 'stack';
+                else
+                    error('Unknown filetype');
+                end
+            end
         else
-            fileType = '';
-            structured = true;
+            error('Unknown directory structure');
         end
-        cams = Utils.GetNumsFromFiles(rootDir,'CM(\d+)','tif');
     else
-        cams = Utils.GetNumsFromFiles(rootDir,'CM(\d+)','stack');
+        curDlist = dir(fullfile(rootDir,'*.stack'));
+        if (~isempty(curDlist))
+            fileType = 'stack';
+        else
+            curDlist = dir(fullfile(rootDir,'*.tif'));
+            if (~isempty(curDlist))
+                fileType = 'stack';
+            else
+                error('Unknown filetype');
+            end
+        end
     end
     
     %% Get metadata from files
+    cams = Utils.GetNumFromStr({curDlist.name}','CM(\d+)');
+    
     wavelengths = [];
     colors = [];
     if (~structured)
         chans = Utils.GetNumsFromFiles(rootDir,'ch(\d)','xml');
         [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'ch0.xml'));
-        
-        for c=unique(chans)
-            wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(rootDir,sprintf('ch%d.xml',c))));
-            colors = vertcat(colors,colorsStd(c+1,:));
-        end
-        switch fileType
-            case 'stack'
-                frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','stack');
-            case 'tif'
-                frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','tif');
-            otherwise
-                error('Malformed directory')
-        end
     else
-        error('TODO deal with structured data');
+        chans = Utils.GetNumsFromFiles(rootDir,'ch(\d)','xml');
+        [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'ch0.xml'));
+    end
+    
+    for c=unique(chans)
+        wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(rootDir,sprintf('ch%d.xml',c))));
+        colors = vertcat(colors,colorsStd(c+1,:));
+    end
+    
+    switch fileType
+        case 'stack'
+            frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','stack');
+        case 'tif'
+            frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','tif');
+        otherwise
+            error('Malformed directory')
     end
     
     if (length(wavelengths)==1)
