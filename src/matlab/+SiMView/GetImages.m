@@ -1,4 +1,4 @@
-function im = GetImages(imMetadata,structured,frames,chans,cameras)
+function im = GetImages(imMetadata,structured,frames,chans,cameras,verbose)
     if (~exist('imMetadata','var') || isempty(imMetadata) || ~exist('structured','var') || isempty(structured))        
         rootDir = uigetdir();
         if (rootDir==0)
@@ -15,6 +15,9 @@ function im = GetImages(imMetadata,structured,frames,chans,cameras)
     end
     if (~exist('cameras','var') || isempty(cameras))
         cameras = 1:imMetadata.NumberOfCameras;
+    end
+    if (~exist('verbose','var') || isempty(verbose))
+        verbose = false;
     end
     
     isStack = true;
@@ -67,6 +70,8 @@ function im = GetImages(imMetadata,structured,frames,chans,cameras)
         
         im = zeros([size(im,1),size(im,2),imMetadata.Dimensions(3),length(chans),length(frames),length(cameras)],'like',im);
         
+        prgs = Utils.CmdlnProgress(length(chans)*length(frames)*length(cameras),true,'Reading Images');
+        i = 1;
         for cm=1:length(cameras)
             camMask = camList==cameras(cm)-1;
             for t=1:length(frames)
@@ -96,10 +101,16 @@ function im = GetImages(imMetadata,structured,frames,chans,cameras)
                         otherwise
                             error('Unknown file type');
                     end
+                    if (verbose)
+                        prgs.PrintProgress(i);
+                    end
+                    i = i+1;
                 end
             end
         end
-        
+        if (verbose)
+            prgs.ClearProgress(true)
+        end
     else
         error('TODO deal with sturctured directories');
     end
