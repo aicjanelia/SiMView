@@ -1,8 +1,13 @@
-function [imMetadata, structured] = GetMetadata(rootDir)
+function [imMetadata, structured] = GetMetadata(rootDir,frame)
+    if (~exist('frame','var') || isempty(frame))
+        frame = 1;
+    end
+
     colorsStd = [0,1,0;1,0,1;0,1,1;1,0,0;1,1,0;0,0,1];
     
     imMetadata = MicroscopeData.GetEmptyMetadata();
     structured = false;
+    fileType = 'stack';
     
     if (~exist('rootDir','var') || isempty(rootDir))
         rootDir = uigetdir();
@@ -10,8 +15,6 @@ function [imMetadata, structured] = GetMetadata(rootDir)
             return
         end
     end
-    
-    fileType = 'stack';
     
     %% check for unstructured files in root
     curDlist = [];
@@ -52,16 +55,27 @@ function [imMetadata, structured] = GetMetadata(rootDir)
     
     wavelengths = [];
     colors = [];
-    if (~structured)
-        chans = Utils.GetNumsFromFiles(rootDir,'ch(\d)','xml');
-        [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'ch0.xml'));
-    else
-        chans = Utils.GetNumsFromFiles(rootDir,'ch(\d)','xml');
-        [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'ch0.xml'));
+    xmlFiles = Utils.RecursiveDir(rootDir,'xml');
+    
+    chans = Utils.GetNumFromStr({xmlFiles.name},'ch(\d)');
+    
+    if (ischar(frame))
+        switch frame
+            case 'first'
+                frame = 1;
+            case 'last'
+                frame = length(xmlFiles);
+            otherwise
+                error('Unknown frame string')
+        end
     end
     
+    [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(xmlFiles(frame).folder,xmlFiles(frame).name));
+    
     for c=unique(chans)
-        wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(rootDir,sprintf('ch%d.xml',c))));
+        cMask = chans==c;
+        i = find(cMask,1,'first');
+        wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(xmlFiles(i).folder,xmlFiles(i).name)));
         colors = vertcat(colors,colorsStd(c+1,:));
     end
     
@@ -69,9 +83,14 @@ function [imMetadata, structured] = GetMetadata(rootDir)
         case 'stack'
             frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','stack');
         case 'tif'
-            frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','tif');
+            if (~structured)
+                frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','tif');
+            else
+                curDlist = dir(fullfile(rootDir,'SPM00','TM*'));
+                frames = Utils.GetNumFromStr({curDlist.name},'TM(\d+)');
+            end
         otherwise
-            error('Malformed directory')
+            error('Malformed directory');
     end
     
     if (length(wavelengths)==1)
