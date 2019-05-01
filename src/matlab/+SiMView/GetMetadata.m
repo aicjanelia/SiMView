@@ -56,8 +56,8 @@ function [imMetadata, structured] = GetMetadata(rootDir)
         chans = Utils.GetNumsFromFiles(rootDir,'ch(\d)','xml');
         [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'ch0.xml'));
     else
-        chans = Utils.GetNumsFromFiles(rootDir,'ch(\d)','xml');
-        [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'ch0.xml'));
+        chans = Utils.GetNumsFromFiles(fullfile(rootDir,'SPM00','TM00000','ANG000'),'ch(\d)','xml');
+        [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(rootDir,'SPM00','TM00000','ANG000','ch0.xml'));
     end
     
     for c=unique(chans)
