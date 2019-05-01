@@ -1,4 +1,4 @@
-function [wavelength, zStep, mag, dimensions, datasetName] = ParseXML(filePath)
+function [wavelength, zStep, mag, dimensions, datasetName, illuminationArms] = ParseXML(filePath)
     f = fopen(filePath,'r');
     fstring = '';
     while (~feof(f))
@@ -41,6 +41,10 @@ function [wavelength, zStep, mag, dimensions, datasetName] = ParseXML(filePath)
         end
         if (isfield(att,'data_header'))
             datasetName = att.data_header;
+        end
+        if (isfield(att,'illumination_arms'))
+            illuminationStr = att.illumination_arms;
+            illuminationArms = cellfun(@(x)(str2double(x)),split(illuminationStr,' & '))';
         end
     end
 end
