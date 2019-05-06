@@ -7,13 +7,14 @@ function CreateSandboxData(rootDir)
 
 %% Get the metadata from the last frame, used to get the max image size
 imageMetadata = SiMView.GetMetadataLastFrame(rootDir);
+originalDatasetName = imageMetadata.DatasetName;
 
 %% Create output directories and write out JSONs/KLBs
 % For this dataset, only have two views: LS1CM1 and LS1CM2
 viewStrings = {'LS1CM1'; 'LS1CM2'};
 for cameraIndex=1:2
     currentViewString = viewStrings{cameraIndex};
-    imageMetadata.DatasetName = [imageMetadata.DatasetName '_' currentViewString]; 
+    imageMetadata.DatasetName = [originalDatasetName '_' currentViewString]; 
     
     % First, write the JSON for each directory
     outputDir = fullfile(rootDir,'Original',currentViewString);
