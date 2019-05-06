@@ -12,7 +12,8 @@ imageMetadata = SiMView.GetMetadataLastFrame(rootDir);
 % For this dataset, only have two views: LS1CM1 and LS1CM2
 viewStrings = {'LS1CM1'; 'LS1CM2'};
 for cameraIndex=1:2
-    currentViewString=viewStrings{cameraIndex};
+    currentViewString = viewStrings{cameraIndex};
+    imageMetadata.DatasetName = [imageMetadata.DatasetName '_' currentViewString]; 
     
     % First, write the JSON for each directory
     outputDir = fullfile(rootDir,'Original',currentViewString);
@@ -29,8 +30,7 @@ for cameraIndex=1:2
         
         % Write KLB
         currentTime = Utils.GetNumFromStr(currentViewKlbFileStructs(i).name, 'TM(\d+)')+1;
-        datasetName = [imageMetadata.DatasetName '_' currentViewString];
-        MicroscopeData.WriterKLB(outputImageData, 'path', outputDir, 'imageData', imageMetadata, 'datasetName', datasetName, 'chanList',1,'timeRange',[currentTime, currentTime],'filePerT',true,'filePerC',true,'writeJson', false);        
+        MicroscopeData.WriterKLB(outputImageData, 'path', outputDir, 'imageData', imageMetadata, 'datasetName', imageMetadata.DatasetName, 'chanList',1,'timeRange',[currentTime, currentTime],'filePerT',true,'filePerC',true,'writeJson', false);        
     end
 end
 
