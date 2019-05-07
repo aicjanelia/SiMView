@@ -81,14 +81,14 @@ function MakeMIPmovieSandbox(rootDir,subDirectory,overwrite,separateColors,fps,m
     tic
     fprintf(1,'Making movie %s...',prefix);
     if (writeFiles)   
-%         for t=1:imMeta.NumberOfFrames
-        parfor t=1:imMeta.NumberOfFrames
+         for t=1:imMeta.NumberOfFrames
+%        parfor t=1:imMeta.NumberOfFrames
             try
                 intensityImage = zeros(imMeta.Dimensions(2), imMeta.Dimensions(1), imMeta.Dimensions(3), imMeta.NumberOfChannels, 1, imMeta.NumberOfCameras);
                 for viewIndex = 1:numel(views)
                     currentView = views(viewIndex).name;
                     camera = Utils.GetNumFromStr(currentView,'CM(\d+)');
-                    klbFileName = fullfile(rootDir,currentView, sprintf('%s_%s_c%01d_t%04d.klb',klbFilePrefix,currentView,1,1));
+                    klbFileName = fullfile(rootDir,currentView, sprintf('%s_%s_c%01d_t%04d.klb',klbFilePrefix,currentView,1,t));
                     intensityImage(:,:,:,1,1,camera) = MicroscopeData.KLB.readKLBstack(klbFileName);
                 end
                 if(separateColors)
