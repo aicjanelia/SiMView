@@ -22,7 +22,7 @@ for cameraIndex=1:2
     
     % Read/write KLBs
     currentViewKlbFileStructs = dir(fullfile(rootDir,['*CM0' num2str(cameraIndex-1) '*.klb']));
-    for i=1:length(currentViewKlbFileStructs)
+    parfor i=1:length(currentViewKlbFileStructs)
         % Read KLB
         currentKlbFile = fullfile(currentViewKlbFileStructs(i).folder, currentViewKlbFileStructs(i).name);
         currentImageData = MicroscopeData.KLB.readKLBstack(currentKlbFile);
