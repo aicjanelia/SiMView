@@ -15,7 +15,7 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors,fps,maxSec)
         maxSec = inf;
     end
 
-    [imMeta,structured] = SiMView.GetMetadata(fullfile(rootDir,subDirectory));
+    [imMeta,structured] = SiMView.GetMetadata(fullfile(rootDir,subDirectory),'last');
     
     if (separateColors && imMeta.NumberOfLightSheets<2 && imMeta.NumberOfCameras<2)
         return
@@ -80,6 +80,13 @@ function MakeMIPmovie(rootDir,subDirectory,overwrite,separateColors,fps,maxSec)
         parfor t=1:imMeta.NumberOfFrames
             try
                 intensityImage = SiMView.GetImages(imMeta,structured,t);
+                sz = size(intensityImage);
+                % HACK for images that grow in z over time
+                if (~all(sz([2,1,3])==imMeta.Dimensions))
+                    curIm = zeros(imMeta.Dimensions([2,1,3]),size(intensityImage,4),size(intensityImage,5),size(intensityImage,6));
+                    curIm(1:size(intensityImage,1),1:size(intensityImage,2),size(intensityImage,3),:,:) = intensityImage;
+                    intensityImage = curIm;
+                end
                 if(separateColors)
                     curIm = intensityImage(:,:,:,1,:,1);
                     for cm = 2:size(intensityImage,6)
