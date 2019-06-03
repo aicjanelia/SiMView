@@ -71,6 +71,11 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame)
     end
     
     [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(xmlFiles(frame).folder,xmlFiles(frame).name));
+    if frame == length(xmlFiles) && ~structured
+        zSlices = Utils.GetNumsFromFiles(rootDir,'PLN(\d+)','tif');
+        %TODO: treat stack files
+        dimensions(3) = max(zSlices)+1;
+    end
     
     for c=unique(chans)
         cMask = chans==c;

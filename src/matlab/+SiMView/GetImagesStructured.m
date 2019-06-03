@@ -20,7 +20,7 @@ function im = GetImagesStructured(imMetadata,frames,chans,cameras,verbose)
             camMask = camList==cameras(cm)-1;
             for c=1:length(chans)
                 chanMask = chanList==chans(c)-1;
-                for z=1:max(plnList)
+                for z=1:max(plnList)+1
                     plnMask = z-1==plnList;
                     
                     fMask = camMask & chanMask & plnMask;

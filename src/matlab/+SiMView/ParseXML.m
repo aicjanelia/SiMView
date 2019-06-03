@@ -1,4 +1,4 @@
-function [wavelength, zStep, mag, dimensions, datasetName, illuminationArms] = ParseXML(filePath)
+function [wavelength, zStep, mag, dimensions, datasetName, illuminationArms, numCams] = ParseXML(filePath)
     f = fopen(filePath,'r');
     fstring = '';
     while (~feof(f))
@@ -34,6 +34,7 @@ function [wavelength, zStep, mag, dimensions, datasetName, illuminationArms] = P
             magStr = regexpi(detection_objective,'(\d+)x','tokens');
             magStr = magStr{1};
             mag = str2double(magStr);
+            numCams = numel(strsplit(detection_objective,','));
         end
         if (isfield(att,'dimensions'))
             tok = regexpi(att.dimensions,'(\d+)x(\d+)x(\d+)','tokens');

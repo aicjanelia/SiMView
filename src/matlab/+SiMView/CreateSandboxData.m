@@ -6,7 +6,7 @@ function CreateSandboxData(rootDir)
 %   appropriate directories, eg. LS1CM1, LS1CM2...
 
 %% Get the metadata from the last frame, used to get the max image size
-imageMetadata = SiMView.GetMetadataLastFrame(rootDir);
+[imageMetadata, structured] = SiMView.GetMetadataLastFrame(rootDir);
 originalDatasetName = imageMetadata.DatasetName;
 
 %% Create output directories and write out JSONs/KLBs
