@@ -53,7 +53,7 @@ end
 xy_prime = xy_prime(1:2,:);
 
 % Subpixel interpolation
-valueAtInds = lininterp2_fast(imIn, xy_prime(1,:)', xy_prime(2,:)');
+valueAtInds = ECCFast.lininterp2_fast(imIn, xy_prime(1,:)', xy_prime(2,:)');
 
 valueAtInds(isnan(valueAtInds))=0;%replace Nan
 

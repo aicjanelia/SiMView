@@ -108,7 +108,7 @@ image = double(image);
 
 % Smoothing of original images
 % f = fspecial('gaussian',[7 7],.5);
-f = get7x7Gaussfilt();
+f = ECCFast.get7x7Gaussfilt();
 TEMP{1} = conv2(template,f,'same');
 IM{1} = conv2(image,f,'same');
 TEMP{1} = template;
@@ -200,7 +200,7 @@ end
 % in case of pyramid implementation, the initial transformation must be
 % appropriately modified
 for ii=1:levels-1
-    warp=next_level(warp, transform, 0);
+    warp= ECCFast.next_level(warp, transform, 0);
 end
 
 %% Run ECC algorithm for each level of pyramid
@@ -214,8 +214,6 @@ for nol=levels:-1:1
     vx = conv2(double(im),[.5,0,-.5],'same');
     vy = conv2(double(im),[.5,0,-.5]','same');
 
-    
-    
     temp = TEMP{nol};
     
     [A,B]=size(temp);
@@ -256,7 +254,7 @@ for nol=levels:-1:1
         [indsToTestI,indsToTestJ] = ind2sub(size(im),indsToTest);
         temp_curr = temp(indsToTest);
         
-        wim = applyWarpOnPts(indsToTest,im,warp,transform);
+        wim = ECCFast.applyWarpOnPts(indsToTest,im,warp,transform);
         
         
         
@@ -292,16 +290,16 @@ for nol=levels:-1:1
         end
         
         % Gradient Image interpolation (warped gradients)
-        wvx = applyWarpOnPts(indsToTest,vx,warp,transform);
-        wvy = applyWarpOnPts(indsToTest,vy,warp,transform);
+        wvx = ECCFast.applyWarpOnPts(indsToTest,vx,warp,transform);
+        wvy = ECCFast.applyWarpOnPts(indsToTest,vy,warp,transform);
         
         
         % Compute the jacobian of warp transform
-        J = warp_jacobian_onPts(indsToTestJ,indsToTestI, warp, transform);
+        J = ECCFast.warp_jacobian_onPts(indsToTestJ,indsToTestI, warp, transform);
         
         
         % Compute the jacobian of warped image wrt parameters (matrix G in the paper)
-        G = image_jacobian_onPts(wvx, wvy, J, nop);
+        G = ECCFast.image_jacobian_onPts(wvx, wvy, J, nop);
         
         
         
@@ -346,7 +344,7 @@ for nol=levels:-1:1
         end
         
         % Update parmaters
-        warp = param_update(warp, delta_p, transform);
+        warp = ECCFast.param_update(warp, delta_p, transform);
         
         
     end
@@ -357,7 +355,7 @@ for nol=levels:-1:1
     
     % modify the parameteres appropriately for next pyramid level
     if (nol>1)&(break_flag==0)
-        warp = next_level(warp, transform,1);
+        warp = ECCFast.next_level(warp, transform,1);
     end
     
 end
@@ -366,7 +364,7 @@ end
 
 if break_flag==1 % this conditional part is only executed when algorithm stops due to Hessian singularity
     for jj=1:nol-1
-        warp = next_level(warp, transform,1);
+        warp = ECCFast.next_level(warp, transform,1);
         %m0=2*m0;
     end
     %margin=floor(m0*.05);
