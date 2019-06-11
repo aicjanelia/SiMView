@@ -80,8 +80,11 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame)
     for c=unique(chans)
         cMask = chans==c;
         i = find(cMask,1,'first');
-        wavelengths = vertcat(wavelengths,SiMView.ParseXML(fullfile(xmlFiles(i).folder,xmlFiles(i).name)));
-        colors = vertcat(colors,colorsStd(c+1,:));
+        wavelength = SiMView.ParseXML(fullfile(xmlFiles(i).folder,xmlFiles(i).name));
+        if ~ismember(wavelength, wavelengths)
+            wavelengths = vertcat(wavelengths,wavelength);
+            colors = vertcat(colors,colorsStd(c+1,:));
+        end
     end
     
     switch fileType
@@ -105,11 +108,11 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame)
     xyPhysicalSize = 6.5 / mag;
     zPhysicalSize = zStep;
     
-    numChans = max(chans) +1;
+    numChans = numel(wavelengths);
     numFrames = max(frames) +1;
     numCams = max(cams) +1;
     
-    if (numChans>length(wavelengths))
+    if (numel(unique(chans))>length(wavelengths))
         numSheets = 2;
     else
         numSheets = 1;
