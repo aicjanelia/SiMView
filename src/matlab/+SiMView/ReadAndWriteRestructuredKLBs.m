@@ -1,12 +1,4 @@
 function ReadAndWriteRestructuredKLBs(imMetadata, currentImMetadata, lightsheetIndex, cameraIndex, scopeChannels, structured, outputDir, frame)
-if ischar(imMetadata), load(imMetadata); end
-if ischar(currentImMetadata), load(currentImMetadata); end
-if ischar(lightsheetIndex), lightsheetIndex = str2num(lightsheetIndex); end
-if ischar(cameraIndex), cameraIndex = str2num(cameraIndex); end
-if ischar(scopeChannels), scopeChannels = jsondecode(scopeChannels); end
-if ischar(structured), structured = str2num(structured); end
-if ischar(frame), frame = str2num(frame); end
-
 scopeChannelsForCurrentView = scopeChannels(lightsheetIndex:imMetadata.NumberOfChannels:end);
 currentImageData = SiMView.GetImages(imMetadata, structured, frame, scopeChannelsForCurrentView, cameraIndex);
 if cameraIndex == 2

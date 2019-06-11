@@ -35,7 +35,7 @@ for lightsheetIndex = 1:imMetadata.NumberOfLightSheets
                 mkdir(debugDir);
             end
             currentViewString = sprintf('LS%dCM%d', lightsheetIndex, cameraIndex);
-            bashScript =  which('run_ReadAndWriteRestructuredKLBs.sh');
+            bashScript = which('run_ClusterReadAndWriteRestructuredKLBs.sh');
             jobName = [imMetadata.DatasetName '_' currentViewString];
             imMetadataFilename = fullfile(debugDir, [jobName '_imMetadata.mat']);
             currentImMetadataFilename = fullfile(debugDir, [jobName '_currentImMetadata.mat']);

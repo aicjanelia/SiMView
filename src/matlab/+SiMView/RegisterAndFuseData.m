@@ -49,7 +49,7 @@ for currentChannel = 1:imMetadata.NumberOfChannels
         if (~exist(debugDir,'dir'))
             mkdir(debugDir);
         end
-        bashScript =  which('run_FuseViews.sh');
+        bashScript =  which('run_ClusterFuseViews.sh');
         systemCommand = sprintf('bsub -P advimgc -J "%s_c%d[1-%d]" -n 32 -o %s -e %s %s /usr/local/matlab-2018b/ %s %s %d \\$LSB_JOBINDEX', imMetadata.DatasetName, currentChannel, imMetadata.NumberOfFrames, fullfile(debugDir, 'FuseViews.o'), fullfile(debugDir, 'FuseViews.e'), bashScript,...
             rootDir, jsonencode(bestTransform), currentChannel);
         system(systemCommand);

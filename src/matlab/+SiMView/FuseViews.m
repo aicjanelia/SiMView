@@ -1,14 +1,4 @@
 function finalFusedImage = FuseViews(rootDir, transform, channel, frame)
-if ischar(channel)
-    channel = str2num(channel);
-end
-if ischar(frame)
-   frame = str2num(frame); 
-end
-if ischar(transform)
-    transform = jsondecode(transform);
-end
-
 outputDir = fullfile(fileparts(rootDir), 'Processed');
 imMetadata = MicroscopeData.ReadMetadata(outputDir);
 numValidSlices = imMetadata.Dimensions(3);
