@@ -48,7 +48,7 @@ for lightsheetIndex = 1:imMetadata.NumberOfLightSheets
             submittedJobNames = [submittedJobNames(:); {jobName}];
         else
             parfor frame=1:imMetadata.NumberOfFrames
-                ReadAndWriteRestructuredKLBs(imMetadata, currentImMetadata, lightsheetIndex, cameraIndex, scopeChannels, structured, outputDir, frame)
+                SiMView.ReadAndWriteRestructuredKLBs(imMetadata, currentImMetadata, lightsheetIndex, cameraIndex, scopeChannels, structured, outputDir, frame)
             end
         end
         %MovieUtils.MakeMP4_ffmpeg
