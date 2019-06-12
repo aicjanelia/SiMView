@@ -27,6 +27,7 @@ if ~isempty(firstNFrames)
     imMetadata.NumberOfFrames = firstNFrames;
 end
 MicroscopeData.CreateMetadata(outputDir,imMetadata);
+submittedJobNames = {};
 for currentChannel = 1:imMetadata.NumberOfChannels
     %% Get Transforms for Camera Fusion
     fprintf('Calculating registration for channel %d...\n', currentChannel);
@@ -51,12 +52,26 @@ for currentChannel = 1:imMetadata.NumberOfChannels
         end
         bashScript =  which('run_ClusterFuseViews.sh');
         fName = sprintf('FuseViews_%s',datetime(datetime,'format','yyyyMMdd_HHmmss'));
-        systemCommand = sprintf('bsub -P advimgc -J "%s_c%d[1-%d]" -n 8 -o %s.o -e %s.e %s /usr/local/matlab-2018b/ %s %s %d \\$LSB_JOBINDEX', imMetadata.DatasetName, currentChannel, imMetadata.NumberOfFrames, fullfile(debugDir, fName), fullfile(debugDir, fName), bashScript,...
+        jobName = sprintf('%s_c%d[1-%d]',imMetadata.DatasetName, currentChannel, imMetadata.NumberOfFrames);
+        systemCommand = sprintf('bsub -P advimgc -J "%s" -n 8 -o %s.o -e %s.e %s /usr/local/matlab-2018b/ %s %s %d \\$LSB_JOBINDEX', jobName, fullfile(debugDir, fName), fullfile(debugDir, fName), bashScript,...
             rootDir, jsonencode(bestTransform), currentChannel);
         system(systemCommand);
+        submittedJobNames = [submittedJobNames(:); {jobName}];
     else
         for currentFrame = 1:imMetadata.NumberOfFrames
             SiMView.FuseViews(rootDir, bestTransform, currentChannel, currentFrame);
         end
+    end
+end
+
+    if submit
+        fprintf('Waiting for registration and fusion jobs to finish...\n');
+        pause(5);
+        [~, cmdout] = system('bjobs -w');
+        while contains(cmdout, submittedJobNames) %wait for it to finish
+            pause(5);
+            [~, cmdout] = system('bjobs -w');
+        end
+        fprintf('Registration and fusion finished.\n');
     end
 end
