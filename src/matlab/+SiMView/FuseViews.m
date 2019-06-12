@@ -9,7 +9,7 @@ for currentLightsheet = 1:imMetadata.NumberOfLightSheets
         image1 = squeeze(MicroscopeData.Reader(view1Directory, 'chanList', channel, 'timeRange', [frame,frame]));
         image2 = squeeze(MicroscopeData.Reader(view2Directory, 'chanList', channel, 'timeRange', [frame,frame]));
         warpedImage2 = imwarp(image2, affine2d(transform), 'outputview', imref2d(size(image2)),'interp','cubic');
-        fusedCameraImage = zeros(imMetadata.Dimensions, imMetadata.PixelFormat);
+        fusedCameraImage = zeros(imMetadata.Dimensions([2,1,3]), imMetadata.PixelFormat);
         maxPerSlice = squeeze(max(max(image1,[],1))); %don't want to include zero padded sections
         numValidSlices = sum(maxPerSlice>0);
         for slice = 1:numValidSlices
@@ -25,7 +25,7 @@ for currentLightsheet = 1:imMetadata.NumberOfLightSheets
 end
 
 if imMetadata.NumberOfLightSheets>1
-    finalFusedImage = zeros(imMetadata.Dimensions, imMetadata.PixelFormat);
+    finalFusedImage = zeros(imMetadata.Dimensions([2,1,3]), imMetadata.PixelFormat);
     for slice = 1:numValidSlices
         finalFusedImage(:,:,slice) = wfusimg(imagesByLightsheet(1).image(:,:,slice), imagesByLightsheet(2).image(:,:,slice), 'db4', 5, 'mean', 'max');
     end
