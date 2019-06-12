@@ -23,5 +23,9 @@ end
 
 SiMView.RestructureData(rootDir, firstNFrames, submit);
 SiMView.RegisterAndFuseData(fullfile(rootDir,'Restructured'), firstNFrames, useECC, rigidOrTranslation, multimodalOrMonomodal, maximumIterations, submit);
-end
 
+    outputDir = fullfile(fileparts(rootDir), 'Processed');
+    metadata = MicroscopeData.ReadMetadata(outputDir);
+    movieDir = fullfile(outputDir, 'movieFrames');
+    MovieUtils.MakeMP4_ffmpeg(1,metadata.NumberOfFrames,movieDir,15,'c1_');
+end
