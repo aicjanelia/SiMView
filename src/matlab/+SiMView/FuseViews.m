@@ -34,10 +34,10 @@ else
 end
 MicroscopeData.WriterKLB(finalFusedImage, 'path', outputDir, 'imageData', imMetadata,'timeRange',[frame, frame],'chanList', channel, 'filePerT',true,'filePerC',true,'writeJson', false);
 
-    imOrtho = ImUtils.MakeOrthoSliceProjections(finalFusedImage,[1,1,1],imMetadata.PixelPhysicalSize(1),imMetadata.PixelPhysicalSize(3));
+    imOrtho = ImUtils.MakeOrthoSliceProjections(finalFusedImage-80,[1,1,1],imMetadata.PixelPhysicalSize(1),imMetadata.PixelPhysicalSize(3));
     if (~exist(fullfile(outputDir,'movieFrames')))
         mkdir(fullfile(outputDir,'movieFrames'));
     end
-    imwrite(imOrtho,sprintf('c%d_%04d.tif',channel,frame));
+    imwrite(imOrtho,fullfile(outputDir,'movieFrames',sprintf('c%d_%04d.tif',channel,frame)));
 end
 
