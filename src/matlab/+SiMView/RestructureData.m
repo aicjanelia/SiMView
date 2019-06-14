@@ -36,6 +36,7 @@ for lightsheetIndex = 1:imMetadata.NumberOfLightSheets
             end
             currentViewString = sprintf('LS%dCM%d', lightsheetIndex, cameraIndex);
             bashScript = which('run_ClusterReadAndWriteRestructuredKLBs.sh');
+            runCompiledMatlabScript =  which('run_CompiledMatlab.sh');
             jobName = [imMetadata.DatasetName '_' currentViewString];
             imMetadataFilename = fullfile(debugDir, [jobName '_imMetadata.mat']);
             currentImMetadataFilename = fullfile(debugDir, [jobName '_currentImMetadata.mat']);
@@ -43,8 +44,9 @@ for lightsheetIndex = 1:imMetadata.NumberOfLightSheets
             save(currentImMetadataFilename, 'currentImMetadata');
             startTime = datetime(datetime,'format','yyyyMMdd_HHmmss');
             logStr = sprintf('ReadAndWriteRestructuredKLBs_%s_%s', currentViewString,startTime);
-            systemCommand = sprintf('bsub -P advimgc -We 5 -J "%s[1-%d]" -n 4 -o %s.o -e %s.e %s /usr/local/matlab-2018b/ %s %s %d %d %s %d %s \\$LSB_JOBINDEX', jobName, imMetadata.NumberOfFrames,...
-                fullfile(debugDir, logStr), fullfile(debugDir, logStr), bashScript,...
+            systemCommand = sprintf('bsub -We 5 -J "%s[1-%d]" -n 4 -o %s.o -e %s.e %s %s /usr/local/matlab-2018b/ %s %s %d %d %s %d %s', jobName, imMetadata.NumberOfFrames,...
+                fullfile(debugDir, logStr), fullfile(debugDir, logStr),...
+                runCompiledMatlabScript, bashScript,...
                 imMetadataFilename, currentImMetadataFilename, lightsheetIndex, cameraIndex, jsonencode(scopeChannels), structured, outputDir);           
             system(systemCommand);
             submittedJobNames = [submittedJobNames(:); {jobName}];

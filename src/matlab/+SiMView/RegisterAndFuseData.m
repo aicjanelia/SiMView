@@ -51,9 +51,11 @@ for currentChannel = 1:imMetadata.NumberOfChannels
             mkdir(debugDir);
         end
         bashScript =  which('run_ClusterFuseViews.sh');
+        runCompiledMatlabScript =  which('run_CompiledMatlab.sh');
         fName = sprintf('FuseViews_%s',datetime(datetime,'format','yyyyMMdd_HHmmss'));
-        jobName = sprintf('%s_c%d[1-%d]',imMetadata.DatasetName, currentChannel, imMetadata.NumberOfFrames);
-        systemCommand = sprintf('bsub -P advimgc -J "%s" -n 8 -o %s.o -e %s.e %s /usr/local/matlab-2018b/ %s %s %d \\$LSB_JOBINDEX', jobName, fullfile(debugDir, fName), fullfile(debugDir, fName), bashScript,...
+        jobName = sprintf('%s_c%d',imMetadata.DatasetName, currentChannel);
+        systemCommand = sprintf('bsub -We 15 -J "%s[1-%d]" -n 8 -o %s.o -e %s.e %s %s /usr/local/matlab-2018b/ %s %s %d', jobName, imMetadata.NumberOfFrames, fullfile(debugDir, fName), fullfile(debugDir, fName),...
+            runCompiledMatlabScript, bashScript,...
             rootDir, jsonencode(bestTransform), currentChannel);
         system(systemCommand);
         submittedJobNames = [submittedJobNames(:); {jobName}];
