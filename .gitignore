@@ -3,3 +3,6 @@
 *.asv
 bin/ClusterReadAndWriteRestructuredKLBs
 bin/ClusterFuseViews
+bin/*.log
+bin/requiredMCRProducts.txt
+bin/readme.txt
