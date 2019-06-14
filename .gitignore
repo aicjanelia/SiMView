@@ -1,4 +1,5 @@
 .DS_Store
 *.m~
 *.asv
-bin/
+bin/ClusterReadAndWriteRestructuredKLBs
+bin/ClusterFuseViews
