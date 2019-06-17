@@ -25,6 +25,9 @@ debugDir = fullfile(fileparts(rootDir), 'Debug');
 imMetadata = SiMView.GetMetadata(fileparts(rootDir), 'last'); %Get overall metadata
 if ~isempty(firstNFrames)
     imMetadata.NumberOfFrames = firstNFrames;
+else
+   currentImMetadata = MicroscopeData.ReadMetadata(fullfile(rootDir, 'LS1CM1'));
+   imMetadata.NumberOfFrames = currentImMetadata.NumberOfFrames; %Need this in case last frame was removed because it was empty
 end
 MicroscopeData.CreateMetadata(outputDir,imMetadata);
 submittedJobNames = {};
