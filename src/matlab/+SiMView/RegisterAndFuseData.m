@@ -76,4 +76,7 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
         end
         fprintf('Registration and fusion finished.\n');
     end
+    
+    movieDir = fullfile(outputDir, 'movieFrames');
+    MovieUtils.MakeMP4_ffmpeg(1,metadata.NumberOfFrames,movieDir,15,'c1_');
 end
