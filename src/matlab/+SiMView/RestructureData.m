@@ -70,4 +70,20 @@ function RestructureData(rootDir, firstNFrames, submit)
         end
         fprintf('Restructure data jobs finished.\n');
     end
+    
+    for lightsheetIndex = 1:imMetadata.NumberOfLightSheets
+        for cameraIndex = 1:imMetadata.NumberOfCameras
+            currentImMetadata = rmfield(imMetadata, {'NumberOfCameras', 'NumberOfLightSheets'});
+
+            currentViewString = sprintf('LS%dCM%d', lightsheetIndex, cameraIndex);
+            currentImMetadata.DatasetName = [imMetadata.DatasetName '_' currentViewString];
+
+            % First, write the JSON for each directory
+            outputDir = fullfile(rootDir,'Restructured',currentViewString);
+    
+            if (imMetadata.NumberOfFrames>15)
+                MovieUtils.MakeMP4_ffmpeg(1,imMetadata.NumberOfFrames,fullfile(outputDir,'movieFrames'),15,'c1_');
+            end
+        end
+    end
 end
