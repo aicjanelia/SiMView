@@ -40,7 +40,8 @@ function finalFusedImage = FuseViews(rootDir, transform, channel, frame)
     MicroscopeData.WriterKLB(finalFusedImage, 'path', outputDir, 'imageData', imMetadata,'timeRange',[frame, frame],'chanList', channel, 'filePerT',true,'filePerC',true,'writeJson', false);
 
     imOrtho = ImUtils.MakeOrthoSliceProjections(finalFusedImage-80,[1,1,1],imMetadata.PixelPhysicalSize(1),imMetadata.PixelPhysicalSize(3));
-    if (~exist(fullfile(outputDir,'movieFrames')))
+    imOrtho = imresize(imOrtho,[1080,NaN]);
+    imOrtho = ImUtils.MakeImageXYDimEven(imOrtho);
     
     if (~exist(fullfile(outputDir,'movieFrames'),'dir'))
         mkdir(fullfile(outputDir,'movieFrames'));

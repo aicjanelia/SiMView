@@ -8,8 +8,8 @@ function ReadAndWriteRestructuredKLBs(imMetadata, currentImMetadata, lightsheetI
     % Write KLB
     MicroscopeData.WriterKLB(currentImageData, 'path', outputDir, 'imageData', currentImMetadata, 'datasetName', currentImMetadata.DatasetName,'timeRange',[frame, frame],'filePerT',true,'filePerC',true,'writeJson', false);
     orthoSliceProjections = ImUtils.MakeOrthoSliceProjections(currentImageData, currentImMetadata.ChannelColors, currentImMetadata.PixelPhysicalSize(1), currentImMetadata.PixelPhysicalSize(3));
-if (~exist(fullfile(outputDir, 'MovieFrames'),'dir'))
-    mkdir(fullfile(outputDir, 'MovieFrames'));
+    orthoSliceProjections = imresize(orthoSliceProjections,[1080,NaN]);
+    orthoSliceProjections = ImUtils.MakeImageXYDimEven(orthoSliceProjections);
     
     if (~exist(fullfile(outputDir, 'movieFrames'),'dir'))
         mkdir(fullfile(outputDir, 'movieFrames'));
