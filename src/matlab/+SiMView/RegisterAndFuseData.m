@@ -78,5 +78,5 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
     end
     
     movieDir = fullfile(outputDir, 'movieFrames');
-    MovieUtils.MakeMP4_ffmpeg(1,metadata.NumberOfFrames,movieDir,15,'c1_');
+    MovieUtils.MakeMP4_ffmpeg(1,imMetadata.NumberOfFrames,movieDir,15,'c1_'); %TODO This is a hack and should blend colors together
 end
