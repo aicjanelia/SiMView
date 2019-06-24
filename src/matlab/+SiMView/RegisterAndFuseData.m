@@ -22,13 +22,12 @@ if (~exist('submit','var'))
 end
 outputDir = fullfile(fileparts(rootDir), 'Processed');
 debugDir = fullfile(fileparts(rootDir), 'Debug');
-imMetadata = SiMView.GetMetadata(fileparts(rootDir), 'last'); %Get overall metadata
+imMetadata = MicroscopeData.ReadMetadata(fullfile(rootDir, 'LS1CM1'));
 if ~isempty(firstNFrames)
     imMetadata.NumberOfFrames = firstNFrames;
-else
-   currentImMetadata = MicroscopeData.ReadMetadata(fullfile(rootDir, 'LS1CM1'));
-   imMetadata.NumberOfFrames = currentImMetadata.NumberOfFrames; %Need this in case last frame was removed because it was empty
 end
+imMetadata.NumberOfLightSheets = numel(unique(Utils.GetNumsFromDirs(rootDir,'LS(\d+)')));
+imMetadata.NumberOfCameras = numel(unique(Utils.GetNumsFromDirs(rootDir,'CM(\d+)')));
 MicroscopeData.CreateMetadata(outputDir,imMetadata);
 submittedJobNames = {};
 for currentChannel = 1:imMetadata.NumberOfChannels
@@ -56,7 +55,7 @@ for currentChannel = 1:imMetadata.NumberOfChannels
         bashScript =  which('run_ClusterFuseViews.sh');
         runCompiledMatlabScript =  which('run_CompiledMatlab.sh');
         fName = sprintf('FuseViews_%s',datetime(datetime,'format','yyyyMMdd_HHmmss'));
-        jobName = sprintf('%s_c%d',imMetadata.DatasetName, currentChannel);
+        jobName = sprintf('%s_c%d',imMetadata.DatasetName(1:end-7), currentChannel);
         systemCommand = sprintf('bsub -We 15 -J "%s[1-%d]" -n 8 -o %s.o -e %s.e %s %s /usr/local/matlab-2018b/ %s %s %d', jobName, imMetadata.NumberOfFrames, fullfile(debugDir, fName), fullfile(debugDir, fName),...
             runCompiledMatlabScript, bashScript,...
             rootDir, jsonencode(bestTransform), currentChannel);
