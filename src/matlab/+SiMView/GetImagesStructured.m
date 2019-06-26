@@ -5,7 +5,7 @@ function im = GetImagesStructured(imMetadata,frames,chans,cameras,verbose)
     
     i = 1;
     for t=1:length(frames)
-        fileList = dir(fullfile(imMetadata.imageDir,'SPM00',sprintf('TM%05d',frames(t)),'ANG000',['*.',ext]));
+        fileList = dir(fullfile(imMetadata.imageDir,'SPM00',sprintf('TM%05d',frames(t)-1),'ANG000',['*.',ext]));
         
         dNames = {fileList.name}';
         chanList = Utils.GetNumFromStr(dNames,'CHN(\d+)');
