@@ -27,6 +27,7 @@ else
       args="${args} \"${token}\"" 
       shift
   done
+  echo "${exe_dir}/ClusterReadAndWriteRestructuredKLBs $args"
   eval "\"${exe_dir}/ClusterReadAndWriteRestructuredKLBs\"" $args
 fi
 exit

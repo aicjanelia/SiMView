@@ -50,6 +50,7 @@ function RestructureData(rootDir, firstNFrames, submit)
                     fullfile(debugDir, logStr), fullfile(debugDir, logStr),...
                     runCompiledMatlabScript, bashScript,...
                     imMetadataFilename, currentImMetadataFilename, lightsheetIndex, cameraIndex, jsonencode(scopeChannels), structured, outputDir);           
+                fprintf('****Running: %s\n****\n',systemCommand);
                 system(systemCommand);
                 submittedJobNames = [submittedJobNames(:); {jobName}];
             else

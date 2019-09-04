@@ -57,6 +57,7 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
             systemCommand = sprintf('bsub -We 15 -J "%s[1-%d]" -n 8 -o %s.o -e %s.e %s %s /usr/local/matlab-2018b/ %s %s %d', jobName, imMetadata.NumberOfFrames, fullfile(debugDir, fName), fullfile(debugDir, fName),...
                 runCompiledMatlabScript, bashScript,...
                 rootDir, jsonencode(bestTransform), currentChannel);
+            fprintf('****Running: %s\n****\n',systemCommand);
             system(systemCommand);
             submittedJobNames = [submittedJobNames(:); {jobName}];
         else
