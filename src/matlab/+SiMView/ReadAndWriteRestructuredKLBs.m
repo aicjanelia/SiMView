@@ -4,16 +4,20 @@ function ReadAndWriteRestructuredKLBs(imMetadata, currentImMetadata, lightsheetI
     if cameraIndex == 2
         currentImageData = flip(currentImageData,2); %Flipped because of how camera 2 acquires wrt camera 1
     end
-    
-    % Write KLB
-    MicroscopeData.WriterKLB(currentImageData, 'path', outputDir, 'imageData', currentImMetadata, 'datasetName', currentImMetadata.DatasetName,'timeRange',[frame, frame],'filePerT',true,'filePerC',true,'writeJson', false);
-    orthoSliceProjections = ImUtils.MakeOrthoSliceProjections(currentImageData, currentImMetadata.ChannelColors, currentImMetadata.PixelPhysicalSize(1), currentImMetadata.PixelPhysicalSize(3));
-    orthoSliceProjections = imresize(orthoSliceProjections,[1080,NaN]);
-    orthoSliceProjections = ImUtils.MakeImageXYDimEven(orthoSliceProjections);
-    
-    if (~exist(fullfile(outputDir, 'movieFrames'),'dir'))
-        mkdir(fullfile(outputDir, 'movieFrames'));
+    if frame == currentImMetadata.NumberOfFrames && nnz(currentImageData) == 0
+        % If last frame is empty
+        currentImMetadata.NumberOfFrames = currentImMetadata.NumberOfFrames - 1;
+        MicroscopeData.CreateMetadata(outputDir,currentImMetadata);
+    else
+        if cameraIndex == 2
+            currentImageData = flip(currentImageData,2); %Flipped because of how camera 2 acquires wrt camera 1
+        end
+        % Write KLB
+        MicroscopeData.WriterKLB(currentImageData, 'path', outputDir, 'imageData', currentImMetadata, 'datasetName', currentImMetadata.DatasetName,'timeRange',[frame, frame],'filePerT',true,'filePerC',true,'writeJson', false);
+        orthoSliceProjections = ImUtils.MakeOrthoSliceProjections(currentImageData, currentImMetadata.ChannelColors, currentImMetadata.PixelPhysicalSize(1), currentImMetadata.PixelPhysicalSize(3));
+        if (~exist(fullfile(outputDir, 'MovieFrames'),'dir'))
+            mkdir(fullfile(outputDir, 'MovieFrames'));
+        end
+        imwrite(orthoSliceProjections, fullfile(outputDir, 'MovieFrames', sprintf('%04d.tif',frame)));
     end
-    
-    imwrite(orthoSliceProjections, fullfile(outputDir, 'movieFrames', sprintf('%04d.tif',frame)));
 end
