@@ -1,7 +1,12 @@
-function finalFusedImage = FuseViews(rootDir, transform, channel, frame)
-    outputDir = fullfile(fileparts(rootDir), 'Processed');
+function finalFusedImage = FuseViews(rootDir, transform, channel, spm, frame)
+    if (~exist('spm','var') || isempty(spm))
+        spm = 0;
+    end
+    
+    outputDir = fullfile(fileparts(rootDir), sprintf('Processed_SPM%02d',spm));
     imMetadata = MicroscopeData.ReadMetadata(outputDir);
     numValidSlices = imMetadata.Dimensions(3);
+    
     for currentLightsheet = 1:imMetadata.NumberOfLightSheets
         if imMetadata.NumberOfCameras>1
             view1Directory = fullfile(rootDir, sprintf('LS%dCM1', currentLightsheet));

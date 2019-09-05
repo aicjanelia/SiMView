@@ -1,11 +1,16 @@
-function im = GetImagesStructured(imMetadata,frames,chans,cameras,verbose)
+function im = GetImagesStructured(imMetadata,frames,chans,cameras,verbose,spm)
+    if (~exist('spm','var') || isempty(spm))
+        spm = 0;
+    end
+
     %Assuming uint16... This might be bad.
     im = zeros([imMetadata.Dimensions([2,1,3]),length(chans),length(frames),length(cameras)],'uint16');
     ext = 'tif'; %deal with non-tif data
     
     i = 1;
+    prgs = Utils.CmdlnProgress(frames*length(cameras),true);
     for t=1:length(frames)
-        fileList = dir(fullfile(imMetadata.imageDir,'SPM00',sprintf('TM%05d',frames(t)-1),'ANG000',['*.',ext]));
+        fileList = dir(fullfile(imMetadata.imageDir,sprintf('SPM%02d',spm),sprintf('TM%05d',frames(t)-1),'ANG000',['*.',ext]));
         
         dNames = {fileList.name}';
         chanList = Utils.GetNumFromStr(dNames,'CHN(\d+)');

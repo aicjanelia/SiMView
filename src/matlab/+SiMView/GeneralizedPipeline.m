@@ -22,5 +22,5 @@ function  GeneralizedPipeline(rootDir, firstNFrames, useECC, rigidOrTranslation,
     end
 
     SiMView.RestructureData(rootDir, firstNFrames, submit);
-    SiMView.RegisterAndFuseData(fullfile(rootDir,'Restructured'), firstNFrames, useECC, rigidOrTranslation, multimodalOrMonomodal, maximumIterations, submit);
+    SiMView.RegisterAndFuseData(rootDir, firstNFrames, useECC, rigidOrTranslation, multimodalOrMonomodal, maximumIterations, submit);
 end

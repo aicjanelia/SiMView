@@ -1,6 +1,8 @@
-function ClusterFuseViews(rootDir, transform, channel, frame)
+function ClusterFuseViews(rootDir, transform, channel, spm, frame)
     channel = str2double(channel);
     frame = str2double(frame);
     transform = jsondecode(transform);
-    SiMView.FuseViews(rootDir, transform, channel, frame);
+    spm = str2double(spm);
+    
+    SiMView.FuseViews(rootDir, transform, channel, spm, frame);
 end

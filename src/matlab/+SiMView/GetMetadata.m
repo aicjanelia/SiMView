@@ -1,4 +1,4 @@
-function [imMetadata, structured] = GetMetadata(rootDir,frame)
+function [imMetadata, structured,spmNums] = GetMetadata(rootDir,frame)
     if (~exist('frame','var') || isempty(frame))
         frame = 1;
     end
@@ -18,7 +18,7 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame)
     
     %% check for unstructured files in root
     curDlist = [];
-    spmList = dir(fullfile(rootDir,'SPM*'));
+    spmList = dir(fullfile(rootDir,'SPM*'));    
     if (~isempty(spmList))
         structured = true;
         if (exist(fullfile(rootDir,'SPM00','TM00000','ANG000'),'dir'))
@@ -50,7 +50,8 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame)
         end
     end
     
-    %% Get metadata from files
+    %% Get metadata from files   
+    spmNums = Utils.GetNumFromStr({spmList.name}','SPM(\d+)');
     cams = Utils.GetNumFromStr({curDlist.name}','CM(\d+)');
     
     wavelengths = [];
@@ -121,7 +122,7 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame)
     pos = regexpi(datasetName,' ');
     datasetName(pos) = '_';
     
-    %% set output
+    %% set output   
     imMetadata.ChannelColors =  colors;
     imMetadata.ChannelNames = wavelengths;
     imMetadata.Dimensions = dimensions;

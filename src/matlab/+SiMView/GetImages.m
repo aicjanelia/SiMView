@@ -1,4 +1,4 @@
-function im = GetImages(imMetadata,structured,frames,chans,cameras,verbose)
+function im = GetImages(imMetadata,structured,frames,chans,cameras,verbose, spm)
     if (~exist('imMetadata','var') || isempty(imMetadata) || ~exist('structured','var') || isempty(structured))        
         rootDir = uigetdir();
         if (rootDir==0)
@@ -19,10 +19,13 @@ function im = GetImages(imMetadata,structured,frames,chans,cameras,verbose)
     if (~exist('verbose','var') || isempty(verbose))
         verbose = false;
     end
+    if (~exist('spm','var') || isempty(spm))
+        spm = 0;
+    end
     
     if (~structured)
         im = SiMView.GetImagesUnstructured(imMetadata,frames,chans,cameras,verbose);
     else
-        im = SiMView.GetImagesStructured(imMetadata,frames,chans,cameras,verbose);
+        im = SiMView.GetImagesStructured(imMetadata,frames,chans,cameras,verbose,spm);
     end
 end
