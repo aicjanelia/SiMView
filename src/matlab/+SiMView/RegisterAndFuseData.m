@@ -125,7 +125,26 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
         end
         
         if (15 <= metadata.NumberOfFrames)
-            MovieUtils.MakeMP4_ffmpeg(1,metadata.NumberOfFrames,movieDir,15); %TODO This is a hack and should blend colors together
+            MovieUtils.MakeMP4_ffmpeg(1,metadata.NumberOfFrames,movieDir,15);
+            
+            dirTok = regexpi(rootDir,filesep,'split');
+            mainRoot = '';
+            for i=1:length(dirTok)-2
+                if (isempty(dirTok{i}))
+                    mainRoot = [mainRoot, filesep];
+                else
+                    mainRoot = fullfile(mainRoot, dirTok{i});
+                end
+            end
+            
+            dateStr = dirTok{end-1};
+            dataName = dirTok{end};
+
+            if (~exist(fullfile(mainRoot,'movies')))
+                mkdir(fullfile(mainRoot,'movies'));
+            end
+            
+            copyfile(fullfile(movieDir,'movieFrames.mp4'),fullfile(mainRoot,'movies',[dateStr,'_',dataName,'_spm',num2str(s,'%02d'),'.mp4']));
         end
     end
 end
