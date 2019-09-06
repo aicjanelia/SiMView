@@ -1,6 +1,6 @@
 function ReadAndWriteRestructuredKLBs(imMetadata, currentImMetadata, lightsheetIndex, cameraIndex, scopeChannels, structured, outputDir, spm, frame)
     scopeChannelsForCurrentView = scopeChannels(lightsheetIndex:imMetadata.NumberOfLightSheets:end);
-    currentImageData = SiMView.GetImages(imMetadata, structured, frame, scopeChannelsForCurrentView, cameraIndex, spm);
+    currentImageData = SiMView.GetImages(imMetadata, structured, frame, scopeChannelsForCurrentView, cameraIndex, false, spm);
     
     if cameraIndex == 2
         currentImageData = flip(currentImageData,2); %Flipped because of how camera 2 acquires wrt camera 1
