@@ -129,8 +129,9 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
             imwrite(imC,fullfile(movieDir,sprintf('%04d.tif',t)));
         end
         
-        if (15 <= metadata.NumberOfFrames)
-            MovieUtils.MakeMP4_ffmpeg(1,metadata.NumberOfFrames,movieDir,15);
+        if (10 <= metadata.NumberOfFrames)
+            fps = min(max(round(metadata.NumberOfFrames/2),5),15);
+            MovieUtils.MakeMP4_ffmpeg(1,metadata.NumberOfFrames,movieDir,fps);
             
             dirTok = regexpi(rootDir,filesep,'split');
             mainRoot = '';
