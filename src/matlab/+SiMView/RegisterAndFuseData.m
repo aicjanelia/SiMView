@@ -106,7 +106,13 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
         metadata = MicroscopeData.ReadMetadata(curOutputDir);
         
         for t=1:metadata.NumberOfFrames
-            im = imread(fullfile(movieDir,sprintf('c1_%04d.tif',t)));
+            try
+                im = imread(fullfile(movieDir,sprintf('c1_%04d.tif',t)));
+            catch err
+                warning(err.message);
+                continue
+            end
+            
             im = im(:,:,1);
             
             for c=2:metadata.NumberOfChannels
