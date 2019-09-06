@@ -54,6 +54,11 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
             end
             fprintf('Finished calculating registration for channel %d.\n', currentChannel);
             
+            if (~isfield(optimalResults,'bestTransform'))
+                warning('Could not register SPM%02d Channel %d in %s', s, currentChannel, rootDir);
+                continue
+            end
+            
             [~,bestIndex] = max([optimalResults.bestNormalizedCovariance]);
             bestTransform = optimalResults(bestIndex).bestTransform;
             
