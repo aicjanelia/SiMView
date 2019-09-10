@@ -88,18 +88,10 @@ function [imMetadata, structured,spmNums] = GetMetadata(rootDir,frame)
         end
     end
     
-    switch fileType
-        case 'stack'
-            frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','stack');
-        case 'tif'
-            if (~structured)
-                frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','tif');
-            else
-                curDlist = dir(fullfile(rootDir,'SPM00','TM*'));
-                frames = Utils.GetNumFromStr({curDlist.name},'TM(\d+)');
-            end
-        otherwise
-            error('Malformed directory');
+    if (~structured)
+        frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','tif');
+    else
+        frames = Utils.GetNumsFromDirs(fullfile(rootDir,'SPM00'),'TM(\d+)');
     end
     
     if (length(wavelengths)==1)

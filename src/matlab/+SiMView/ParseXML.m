@@ -1,19 +1,24 @@
 function [wavelength, zStep, mag, dimensions, datasetName, numCams] = ParseXML(filePath)
     f = fopen(filePath,'r');
     fstring = '';
+    found = false;
     while (~feof(f))
         curLine = fgets(f);
         pos = strfind(curLine,'&');
         newLine = curLine;
         if (~isempty(pos) && ~strcmpi(curLine(pos+1:pos+3),'amp'))
             newLine = [curLine(1:pos),'amp;',curLine(pos+1:end)];
+            found = true;
         end
         fstring = [fstring,newLine];
     end
     fclose(f);
-    f = fopen(filePath,'w');
-    fprintf(f,fstring);
-    fclose(f);
+    
+    if (found)
+        f = fopen(filePath,'w');
+        fprintf(f,fstring);
+        fclose(f);
+    end
 
     metadata = Utils.xml2struct(filePath);
     metadata = metadata.push_config.info;
