@@ -31,7 +31,8 @@ function [optimalResults, registrationResults] = GetOptimalRegistrationTransform
         numValidSlices = sum(maxPerSlice>0);
 
         normalizedCovariance = zeros(numValidSlices, 2);
-        transforms = affine2d.empty(numValidSlices,0);
+        transforms = affine2d.empty(0,numValidSlices);
+        transforms(1,numValidSlices) = affine2d();
 
         if frame == 1
             sizeFactor = round(size(currentImageStackView1)*.25);
@@ -40,11 +41,13 @@ function [optimalResults, registrationResults] = GetOptimalRegistrationTransform
         end
 
         parfor (slice = 1:numValidSlices, parforArg)
-    %     for slice = 1:numValidSlices
+%         for slice = 1:numValidSlices
             currentImageSliceView1 = currentImageStackView1(:,:,slice);
             currentImageSliceView2 = currentImageStackView2(:,:,slice);
 
             if (nnz(currentImageSliceView1(:))==0 || nnz(currentImageSliceView2(:))==0)
+                fprintf('%d continue\n',slice);
+                drawnow
                 continue
             end
 
@@ -55,12 +58,8 @@ function [optimalResults, registrationResults] = GetOptimalRegistrationTransform
                 currentImageSliceView2Warped = imwarp(currentImageSliceView2, sliceTransform, 'outputview', imref2d(size(currentImageSliceView2)), 'interp', 'cubic');
             end
             
-            transforms(slice) = sliceTransform;
+            transforms(1,slice) = sliceTransform;
             normalizedCovariance(slice,:) = [Math.NormalizedCovariance(currentImageSliceView1(rRange, cRange), currentImageSliceView2(rRange, cRange)), Math.NormalizedCovariance(currentImageSliceView1(rRange, cRange), currentImageSliceView2Warped(rRange, cRange))];
-        end
-        
-        if (isempty(transforms))
-            continue
         end
         
         currentRegistrationResult = [];
