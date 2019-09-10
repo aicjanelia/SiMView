@@ -69,6 +69,12 @@ function [imMetadata, structured,spmNums] = GetMetadata(rootDir,frame)
             otherwise
                 error('Unknown frame string')
         end
+    elseif (isscalar(frame))
+        frameDirs = regexpi({xmlFiles.folder},sprintf('TM%05d',frame-1),'match');
+        framesMask = cellfun(@(x)(~isempty(x)),frameDirs);
+        frame = find(framesMask,1,'first');
+    else
+        error('Unknown input for frame');
     end
     
     [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(xmlFiles(frame).folder,xmlFiles(frame).name));
