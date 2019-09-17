@@ -11,15 +11,17 @@ function RestructureData(rootDir, firstNFrames, submit)
     end
     
     %% Get the metadata from the last frame
-    [imMetadata, structured,spmNums] = SiMView.GetMetadata(rootDir, 'last');
+    spmNums = SiMView.GetSpmIndices(rootDir);
     if ~isempty(firstNFrames)
         imMetadata.NumberOfFrames = firstNFrames;
     end
     
-    scopeChannels = 1:imMetadata.NumberOfChannels*imMetadata.NumberOfLightSheets; %CH1LS1, CH1LS2, CH2LS1, CH2LS2,...
     submittedJobNames = {};
     %% Create output directories and write out JSONs/KLBs
     for s=spmNums
+        [imMetadata, structured] = SiMView.GetMetadata(rootDir, 'last',s);
+        scopeChannels = 1:imMetadata.NumberOfChannels*imMetadata.NumberOfLightSheets; %CH1LS1, CH1LS2, CH2LS1, CH2LS2,...
+        
         for lightsheetIndex = 1:imMetadata.NumberOfLightSheets
             for cameraIndex = 1:imMetadata.NumberOfCameras
                 currentImMetadata = rmfield(imMetadata, {'NumberOfCameras', 'NumberOfLightSheets'});

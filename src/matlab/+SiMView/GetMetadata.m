@@ -1,6 +1,9 @@
-function [imMetadata, structured,spmNums] = GetMetadata(rootDir,frame)
+function [imMetadata, structured] = GetMetadata(rootDir,frame,spmNum)
     if (~exist('frame','var') || isempty(frame))
-        frame = 1;
+        frame = 'first';
+    end
+    if (~exist('spmNum','var') || isempty(spmNum))
+        spmNum = 0;
     end
 
     colorsStd = [0,1,0;1,0,1;0,1,1;1,0,0;1,1,0;0,0,1];
@@ -18,15 +21,16 @@ function [imMetadata, structured,spmNums] = GetMetadata(rootDir,frame)
     
     %% check for unstructured files in root
     curDlist = [];
-    spmList = dir(fullfile(rootDir,'SPM*'));    
+    spm = sprintf('SPM%02d',spmNum);
+    spmList = dir(fullfile(rootDir,spm));    
     if (~isempty(spmList))
         structured = true;
-        if (exist(fullfile(rootDir,'SPM00','TM00000','ANG000'),'dir'))
-            curDlist = dir(fullfile(rootDir,'SPM00','TM00000','ANG000','*.tif'));
+        if (exist(fullfile(rootDir,spm,'TM00000','ANG000'),'dir'))
+            curDlist = dir(fullfile(rootDir,spm,'TM00000','ANG000','*.tif'));
             if (~isempty(curDlist))
                 fileType = 'tif';
             else
-                curDlist = dir(fullfile(rootDir,'SPM00','TM00000','ANG000','*.stack'));
+                curDlist = dir(fullfile(rootDir,spm,'TM00000','ANG000','*.stack'));
                 if (~isempty(curDlist))
                     fileType = 'stack';
                 else
@@ -51,12 +55,11 @@ function [imMetadata, structured,spmNums] = GetMetadata(rootDir,frame)
     end
     
     %% Get metadata from files   
-    spmNums = Utils.GetNumFromStr({spmList.name}','SPM(\d+)');
     cams = Utils.GetNumFromStr({curDlist.name}','CM(\d+)');
     
     wavelengths = [];
     colors = [];
-    xmlFiles = Utils.RecursiveDir(rootDir,'xml');
+    xmlFiles = Utils.RecursiveDir(fullfile(rootDir,spm),'xml');
     
     chans = Utils.GetNumFromStr({xmlFiles.name},'ch(\d)');
     

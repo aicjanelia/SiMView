@@ -24,13 +24,15 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
     outputDir = fullfile(rootDir, 'Processed');
     debugDir = fullfile(rootDir, 'Debug');
     
-    [imMetadata,~,spmNums] = SiMView.GetMetadata(rootDir, 'last'); %Get overall metadata and number of spms
-    if ~isempty(firstNFrames)
-        imMetadata.NumberOfFrames = firstNFrames;
-    end
+    spmNums = SiMView.GetSpmIndices(rootDir);
     
     submittedJobNames = {};
     for s=spmNums
+        imMetadata = SiMView.GetMetadata(rootDir, 'last',s); %Get overall metadata and number of spms
+        if ~isempty(firstNFrames)
+            imMetadata.NumberOfFrames = firstNFrames;
+        end
+        
         curOutputDir = sprintf('%s_SPM%02d',outputDir,s);
         MicroscopeData.CreateMetadata(curOutputDir,imMetadata);
         restrucName = ['Restructured_SPM',num2str(s,'%02d')];
