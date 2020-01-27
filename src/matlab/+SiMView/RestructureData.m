@@ -12,6 +12,10 @@ function RestructureData(rootDir, firstNFrames, submit)
     
     %% Get the metadata from the last frame
     spmNums = SiMView.GetSpmIndices(rootDir);
+    if isempty(spmNums)
+        spmNums = 1;
+    end
+    
     if ~isempty(firstNFrames)
         imMetadata.NumberOfFrames = firstNFrames;
     end
@@ -53,7 +57,8 @@ function RestructureData(rootDir, firstNFrames, submit)
                     startTime = datetime(datetime,'format','yyyyMMdd_HHmmss');
                     logStr = sprintf('ReadAndWriteRestructuredKLBs_%s_%s', currentViewString,startTime);
                     
-                    systemCommand = sprintf('bsub -We 5 -J "%s[1-%d]" -n 4 -o %s.o -e %s.e %s %s /usr/local/matlab-2018b/ %s %s %d %d %s %d %s %d', jobName, imMetadata.NumberOfFrames,...
+                    systemCommand = sprintf('bsub -We 5 -J "%s[1-%d]" -n 4 -o %s.o -e %s.e %s %s /usr/local/matlab-2018b/ %s %s %d %d %s %d %s %d',...
+                        jobName, imMetadata.NumberOfFrames,...
                         fullfile(debugDir, logStr), fullfile(debugDir, logStr),...
                         runCompiledMatlabScript, bashScript,...
                         imMetadataFilename, currentImMetadataFilename, lightsheetIndex, cameraIndex, jsonencode(scopeChannels), structured, outputDir, s);
@@ -63,7 +68,7 @@ function RestructureData(rootDir, firstNFrames, submit)
                     
                     submittedJobNames = [submittedJobNames(:); {jobName}];
                 else
-                    for frame=1:imMetadata.NumberOfFrames
+                    parfor frame=1:imMetadata.NumberOfFrames
                         SiMView.ReadAndWriteRestructuredKLBs(imMetadata, currentImMetadata, lightsheetIndex, cameraIndex, scopeChannels, structured, outputDir, s, frame)
                     end
                 end

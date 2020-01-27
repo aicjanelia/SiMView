@@ -21,14 +21,28 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
         submit = true;
     end
     
+    optimalResults = [];
+    registrationResults = [];
+    
     outputDir = fullfile(rootDir, 'Processed');
     debugDir = fullfile(rootDir, 'Debug');
     
     spmNums = SiMView.GetSpmIndices(rootDir);
+    if (isempty(spmNums))
+        spmNums = 1;
+    end
     
     submittedJobNames = {};
+    foundFusion = false;
     for s=spmNums
         imMetadata = SiMView.GetMetadata(rootDir, 'last',s); %Get overall metadata and number of spms
+        
+        if (imMetadata.NumberOfCameras==1 & imMetadata.NumberOfLightSheets==1)
+            continue
+        end
+        
+        foundFusion = true;
+        
         if ~isempty(firstNFrames)
             imMetadata.NumberOfFrames = firstNFrames;
         end
@@ -58,11 +72,11 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
             
             if (~isfield(optimalResults,'bestTransform'))
                 warning('Could not register SPM%02d Channel %d in %s', s, currentChannel, rootDir);
-                continue
+                bestTransform = [0,0,0];
+            else
+                [~,bestIndex] = max([optimalResults.bestNormalizedCovariance]);
+                bestTransform = optimalResults(bestIndex).bestTransform;
             end
-            
-            [~,bestIndex] = max([optimalResults.bestNormalizedCovariance]);
-            bestTransform = optimalResults(bestIndex).bestTransform;
             
             % Blend Images
             if submit
@@ -91,6 +105,10 @@ function [optimalResults, registrationResults] = RegisterAndFuseData(rootDir, fi
                 end
             end
         end
+    end
+    
+    if (~foundFusion)
+        return
     end
 
     if submit
