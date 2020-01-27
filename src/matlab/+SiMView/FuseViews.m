@@ -26,7 +26,7 @@ function finalFusedImage = FuseViews(rootDir, transform, channel, spm, frame)
             
             imagesByLightsheet(currentLightsheet).image = fusedCameraImage;
         else
-            viewDirectory = sprintf('LS%dCM1', lightsheet);
+            viewDirectory = fullfile(rootDir, sprintf('LS%dCM1', currentLightsheet));
             imagesByLightsheet(currentLightsheet).image = squeeze(MicroscopeData.Reader(viewDirectory, 'chanList', channel, 'timeRange', [frame,frame]));
             maxPerSlice = squeeze(max(max(imagesByLightsheet(currentLightsheet).image,[],1))); %don't want to include zero padded sections
             numValidSlices = sum(maxPerSlice>0);
