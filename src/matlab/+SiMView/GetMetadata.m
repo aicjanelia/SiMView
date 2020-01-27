@@ -42,6 +42,7 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame,spmNum)
         end
     else
         curDlist = dir(fullfile(rootDir,'*.stack'));
+        spm = '';
         if (~isempty(curDlist))
             fileType = 'stack';
         else
@@ -81,7 +82,7 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame,spmNum)
     end
     
     [~, zStep, mag,dimensions,datasetName] = SiMView.ParseXML(fullfile(xmlFiles(frame).folder,xmlFiles(frame).name));
-    if frame == length(xmlFiles) && ~structured
+    if frame == length(xmlFiles) && ~structured && strcmp(fileType,'tif')
         zSlices = Utils.GetNumsFromFiles(rootDir,'PLN(\d+)','tif');
         %TODO: treat stack files
         dimensions(3) = max(zSlices)+1;
@@ -98,7 +99,7 @@ function [imMetadata, structured] = GetMetadata(rootDir,frame,spmNum)
     end
     
     if (~structured)
-        frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)','tif');
+        frames = Utils.GetNumsFromFiles(rootDir,'TM(\d+)',fileType);
     else
         frames = Utils.GetNumsFromDirs(fullfile(rootDir,'SPM00'),'TM(\d+)');
     end
