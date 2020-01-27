@@ -63,7 +63,8 @@ function im = GetImagesUnstructured(imMetadata,frames,chans,cameras,verbose)
                             continue
                         end
                         filePath = fullfile(imMetadata.imageDir,dList(fMask).name);
-                        im(:,:,:,c,t,cm) = MicroscopeData.ReaderRawStack(imMetadata.Dimensions,filePath,imMetadata.PixelFormat);
+                        imtemp = MicroscopeData.ReaderRawStack(imMetadata.Dimensions,filePath,imMetadata.PixelFormat);
+                        im(:,:,1:size(imtemp,3),c,t,cm) = imtemp;
                     case 'tif'
                         for z=1:imMetadata.Dimensions(3)
                             plnMask = plnList==z-1;
