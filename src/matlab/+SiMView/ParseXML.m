@@ -1,4 +1,4 @@
-function [wavelength, zStep, mag, dimensions, datasetName, numCams] = ParseXML(filePath)
+function [wavelength, zStep, mag, dimensions, datasetName, numCams, mdstruct] = ParseXML(filePath)
     f = fopen(filePath,'r');
     fstring = '';
     found = false;
@@ -48,5 +48,18 @@ function [wavelength, zStep, mag, dimensions, datasetName, numCams] = ParseXML(f
         if (isfield(att,'data_header'))
             datasetName = att.data_header;
         end
+    end
+    
+    % try to convert the cell array of structs to a single struct. This is
+    % potentially breaking, so we print a warning if it fails
+    mdstruct = struct;
+    try
+        for c = metadata
+            for f = fieldnames(c{1}.Attributes)
+                mdstruct = setfield(mdstruct, f{1}, getfield(c{1}.Attributes, f{1}));
+            end
+        end
+    catch
+        warning('Could not convert xml into a single structure. Returned structure will be empty');
     end
 end
