@@ -1,8 +1,10 @@
 dataset_file = File.openDialog("Select xml file");
 Dialog.create("Number of frames to fuse");
-Dialog.addNumber("Number of Frames", 1);
+Dialog.addNumber("First Frame", 0);
+Dialog.addNumber("Last Frame", 1);
 Dialog.show();
-num_frames = Dialog.getNumber();
+frameStart = Dialog.getNumber();
+frameEnd = Dialog.getNumber();
 
 // First apply the stitching from 488 to 561 (assuming 488 for intrest points, need to make this an option)
 run("Duplicate Transformations", "apply=[One channel to other channels] select=" + dataset_file + " apply_to_angle=[All angles] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint 0] source=488 target=[Single Channel (Select from List)] processing_channel=561 duplicate_which_transformations=[Replace all transformations]");
@@ -23,7 +25,7 @@ if (!File.exists(output_dir))
 	print("Making directory " + output_dir);
 }
 
-for (i=0; i<num_frames; ++i)
+for (i=frameStart; i<frameEnd; ++i){
 {
 
     run("Fuse dataset ...", "select=" + dataset_file + " process_angle=[All angles] process_channel=[Multiple channels (Select from List)] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] channel_488 channel_489 processing_timepoint=[Timepoint " + i + "] bounding_box=[All Views] downsampling=1 pixel_type=[16-bit unsigned integer] interpolation=[Linear Interpolation] image=[Precompute Image] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend produce=[All views together] fused_image=[Save as (compressed) TIFF stacks] output_file_directory=" + output_dir + " filename_addition=blended_t" + leftPad(i,4) + "_ch0");
