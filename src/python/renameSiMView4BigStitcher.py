@@ -3,8 +3,10 @@
 import argparse
 import os
 import re
+import threading
 from pathlib import Path, PurePath
 from sys import exit
+from time import sleep
 
 """
 Parser for command line arguments
@@ -26,9 +28,6 @@ def parse_args():
 Parser for filenames + metadata
 """
 def parse_files(path1,Nremove):
-
-    output = path1 / 'BigStitcherFiles'
-    output.mkdir(exist_ok=True)
 
     # First find all the timepoint folders
     tFolders = os.listdir(path1)
@@ -65,14 +64,13 @@ def parse_files(path1,Nremove):
     for idx, t in enumerate(tList):
         tNow = 'TM'+str(tList[idx])
         tfNow = path1 / tNow / 'ANG000'
+        print(tNow)
 
-        # Set up output folder structure
-        outputNow = output / tNow
-        outputNow.mkdir(exist_ok=True)
-        outputNow = outputNow / 'ANG000'
-        outputNow.mkdir(exist_ok=True)
+        # Rename twice because otherwise you run issue that, e.g., z0300 already exists when you want to rename z0000 --> z0300
+        # If the file names aren't the exact number of z-padding, etc., the BigStitcher plugin can't read it
+        # So --> rename to a tmp name, then switch back to the same format as before.
 
-        # Get the appropriate file names
+        # tmp renaming
         files = os.listdir(tfNow) # ASSUMPTION: one angle experiment set up
         patternF = re.compile('SPC00_TM'+tList[idx]+'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{4}).tif')
         for f in files:
@@ -80,13 +78,39 @@ def parse_files(path1,Nremove):
             if m:
                 if m.group(1)=='1': # Only rename files on the second camera
                     newZ = zMax-int(m.group(3))
-                    newFile = 'SPC00_TM'+tNow+'_ANG000_CM'+m.group(1)+'_CHN'+m.group(2)+'_PH0_PLN'+str(newZ)+'.tif'
+                    newFile = 'SPC00_'+tNow+'_ANG000_CM'+m.group(1)+'_CHN'+m.group(2)+'_PH0_PLN'+str(newZ).zfill(5)+'.tif'
                     if os.name == 'nt': # windows
-                        cmd = 'ren '+ str(tfNow/f) + ' ' + newFile
+                        cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
                     else:
                         cmd = 'mv '+ str(tfNow/f) + ' ' + str(tfNow/newFile)
-                    os.system(cmd)
+                    threading.Thread(target=os.system,args=(cmd,)).start()
+                    # os.system(cmd)
                     # print(cmd)
+
+        # Don't proceed to the next step until these threads finish running
+        # This avoids duplicate issues
+        Nrunning = threading.active_count()
+        # print(Nrunning)
+        while Nrunning>1:
+            sleep(0.05)
+            Nrunning = threading.active_count()
+            # print(Nrunning)
+
+        # final renaming
+        files = os.listdir(tfNow) # ASSUMPTION: one angle experiment set up
+        patternF = re.compile('SPC00_TM'+tList[idx]+'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{5}).tif')
+        for f in files:
+            m = patternF.fullmatch(f)
+            if m:                
+                newZ = int(m.group(3))
+                newFile = 'SPC00_'+tNow+'_ANG000_CM'+m.group(1)+'_CHN'+m.group(2)+'_PH0_PLN'+str(newZ).zfill(4)+'.tif'
+                if os.name == 'nt': # windows
+                    cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
+                else:
+                    cmd = 'mv '+ str(tfNow/f) + ' ' + str(tfNow/newFile)
+                threading.Thread(target=os.system,args=(cmd,)).start()
+                # os.system(cmd)
+                # print(cmd)
 
 
 if __name__ == '__main__':
@@ -95,5 +119,13 @@ if __name__ == '__main__':
 
     # make the symlinks
     data = parse_files(args.input,args.removeSlices)
+
+    # make sure none of the threads are still running before reporting that you are done
+    Nrunning = threading.active_count()
+    # print(Nrunning)
+    while Nrunning>1:
+        sleep(0.05)
+        Nrunning = threading.active_count()
+        # print(Nrunning)
 
     print('Done')
