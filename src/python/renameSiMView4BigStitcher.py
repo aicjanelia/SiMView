@@ -1,4 +1,4 @@
-#! python3
+#! /misc/local/python-3.8.2/bin/python3
 
 import argparse
 import os
@@ -12,7 +12,7 @@ from time import sleep
 Parser for command line arguments
 """
 def parse_args():
-    parser = argparse.ArgumentParser(description='Converts a SiMView data directory into a folder of symlinks for BigStitcher dataset definition')
+    parser = argparse.ArgumentParser(description='Changes file names in a SiMView data directory to accomodate BigStitcher.')
     parser.add_argument('input', type=Path, help='path to image files')
     parser.add_argument('-flipZ', action='store_true', help='flag to change the numerical order of the z-slices on CM1. Defaults to false.', dest='flipZ', default=False)
     parser.add_argument('-flipCamera', action='store_true', help='flag to change the numerical order of the cameras. Defaults to false.', dest='flipCamera', default=False)
@@ -90,7 +90,7 @@ def run_zFlip(path1):
                     if os.name == 'nt': # windows
                         cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
                     else:
-                        cmd = 'mv '+ str(tfNow/f) + ' ' + str(tfNow/newFile)
+                        cmd = 'mv "'+ str(tfNow/f) + '" "' + str(tfNow/newFile) + '"'
                     threading.Thread(target=os.system,args=(cmd,)).start()
                     # os.system(cmd)
                     # print(cmd)
@@ -115,7 +115,7 @@ def run_zFlip(path1):
                 if os.name == 'nt': # windows
                     cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
                 else:
-                    cmd = 'mv '+ str(tfNow/f) + ' ' + str(tfNow/newFile)
+                    cmd = 'mv "'+ str(tfNow/f) + '" "' + str(tfNow/newFile) + '"'
                 threading.Thread(target=os.system,args=(cmd,)).start()
                 # os.system(cmd)
                 # print(cmd)
@@ -162,7 +162,7 @@ def run_cameraFlip(path1):
                 if os.name == 'nt': # windows
                     cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
                 else:
-                    cmd = 'mv '+ str(tfNow/f) + ' ' + str(tfNow/newFile)
+                    cmd = 'mv "'+ str(tfNow/f) + '" "' + str(tfNow/newFile) + '"'
                 threading.Thread(target=os.system,args=(cmd,)).start()
                 # os.system(cmd)
                 # print(cmd)
@@ -189,7 +189,7 @@ def run_cameraFlip(path1):
                 if os.name == 'nt': # windows
                     cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
                 else:
-                    cmd = 'mv '+ str(tfNow/f) + ' ' + str(tfNow/newFile)
+                    cmd = 'mv "'+ str(tfNow/f) + '" "' + str(tfNow/newFile) + '"'
                 threading.Thread(target=os.system,args=(cmd,)).start()
                 # os.system(cmd)
                 # print(cmd)
