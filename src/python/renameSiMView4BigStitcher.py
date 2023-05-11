@@ -131,10 +131,10 @@ def run_cameraFlip(path1):
     if len(camList)>2:
         exit(f'ERROR: Expected maximum two cameras.')
     elif len(camList)==2:
-        if not((camList[0]=='0') & (camList[1]=='1')):
+        if not((camList[0]=='0') and (camList[1]=='1')):
             exit(f'ERROR: Expected the two cameras to be CM0 and CM1.')
     elif len(camList)==1:
-        if not(camList[0]=='0' | camList[0]=='1'):
+        if not(camList[0]=='0' or camList[0]=='1'):
             exit(f'ERROR: Expected the cameras to be either CM0 or CM1.')
     else:
         exit(f'ERROR: Unexpected camera naming error.')
