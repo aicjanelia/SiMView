@@ -88,7 +88,7 @@ def run_zFlip(path1):
                     newZ = zMax-int(m.group(3))
                     newFile = 'SPC00_'+tNow+'_ANG000_CM'+m.group(1)+'_CHN'+m.group(2)+'_PH0_PLN'+str(newZ).zfill(5)+'.tif'
                     if os.name == 'nt': # windows
-                        cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
+                        cmd = 'ren "'+ str(tfNow/f) + '" "' + newFile + '"'                        
                     else:
                         cmd = 'mv "'+ str(tfNow/f) + '" "' + str(tfNow/newFile) + '"'
                     threading.Thread(target=os.system,args=(cmd,)).start()
@@ -113,7 +113,7 @@ def run_zFlip(path1):
                 newZ = int(m.group(3))
                 newFile = 'SPC00_'+tNow+'_ANG000_CM'+m.group(1)+'_CHN'+m.group(2)+'_PH0_PLN'+str(newZ).zfill(4)+'.tif'
                 if os.name == 'nt': # windows
-                    cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
+                    cmd = 'ren "'+ str(tfNow/f) + '" "' + newFile + '"'                       
                 else:
                     cmd = 'mv "'+ str(tfNow/f) + '" "' + str(tfNow/newFile) + '"'
                 threading.Thread(target=os.system,args=(cmd,)).start()
@@ -160,7 +160,7 @@ def run_cameraFlip(path1):
                 newFile = 'SPC00_'+tNow+'_ANG000_CM'+str(newCam).zfill(3)+'_CHN'+m.group(2)+'_PH0_PLN'+m.group(3)+'.tif'
 
                 if os.name == 'nt': # windows
-                    cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
+                    cmd = 'ren "'+ str(tfNow/f) + '" "' + newFile + '"'                        
                 else:
                     cmd = 'mv "'+ str(tfNow/f) + '" "' + str(tfNow/newFile) + '"'
                 threading.Thread(target=os.system,args=(cmd,)).start()
@@ -187,7 +187,7 @@ def run_cameraFlip(path1):
                 newFile = 'SPC00_'+tNow+'_ANG000_CM'+str(newCam).zfill(0)+'_CHN'+m.group(2)+'_PH0_PLN'+m.group(3)+'.tif'
 
                 if os.name == 'nt': # windows
-                    cmd = 'ren '+ str(tfNow/f) + ' ' + newFile                        
+                    cmd = 'ren "'+ str(tfNow/f) + '" "' + newFile + '"'                       
                 else:
                     cmd = 'mv "'+ str(tfNow/f) + '" "' + str(tfNow/newFile) + '"'
                 threading.Thread(target=os.system,args=(cmd,)).start()
