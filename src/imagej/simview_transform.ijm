@@ -24,9 +24,6 @@ if (!parseMeta){
 	// Note: can't read maxZ from the XML because the XML will have a lower value if the zFlip is required
 	dirIm = File.getDirectory(dataset_file);
 	list = getFileList(dirIm + "/TM00000/ANG000/");
-	open(dirIm + "/TM00000/ANG000/" + list[0]);
-	width = getWidth();
-	close();
 	maxZ = list[list.length-1];
 	maxZ = substring(maxZ, 38,42);
 	maxZ = parseFloat(maxZ)+1;
@@ -45,11 +42,14 @@ if (!parseMeta){
 	}
 	maxT = maxT+1;
 	
-	// Get the z-spacing from the xml
+	// Get the z-spacing and x-size from the xml
 	xmlData = File.openAsString(dataset_file);
 	startIndx = indexOf(xmlData,"<voxelSize>");
 	zStep = substring(xmlData,startIndx+68,startIndx+71);
 	zStep = parseFloat(zStep);
+	startIndx = indexOf(xmlData,"<size>");
+	width = substring(xmlData,startIndx+6,startIndx+10);
+	width = parseFloat(width);
 	
 	// Use the xml to check for multiple illuminations
 	startIndx = indexOf(xmlData,"</Illumination></Attributes>");
