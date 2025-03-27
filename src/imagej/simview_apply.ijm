@@ -33,17 +33,17 @@ sourceCT = Dialog.getNumber();
 
 if (copyChannel){
 	// First apply the stitching from one channel to the other
-	run("Duplicate Transformations", "apply=[One channel to other channels] select=[" + dataset_file + "] apply_to_angle=[All angles] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint "+refTimeC+"] source=" + source + " target=[All Channels] duplicate_which_transformations=[Replace all transformations]");	
+	run("Duplicate Transformations", "apply=[One channel to other channels] select=[file:/" + dataset_file + "] apply_to_angle=[All angles] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint "+refTimeC+"] source=" + source + " target=[All Channels] duplicate_which_transformations=[Replace all transformations]");	
 }
 
 if (copyTime){
 	// Next apply this to all timepoints
-	run("Duplicate Transformations", "apply=[One timepoint to other timepoints] select=[" + dataset_file + "] apply_to_angle=[All angles] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] source="+refTimeT+" target=[All Timepoints] duplicate_which_transformations=[Replace all transformations]");
+	run("Duplicate Transformations", "apply=[One timepoint to other timepoints] select=[file:/" + dataset_file + "] apply_to_angle=[All angles] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] source="+refTimeT+" target=[All Timepoints] duplicate_which_transformations=[Replace all transformations]");
 }
 
 if (copyChannelTime){
 	// Apply across channels, timepoint by timepoint
-	run("Duplicate Transformations", "apply=[One channel to other channels] select=[" + dataset_file + "] apply_to_angle=[All angles] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] source=" + source + " target=[All Channels] duplicate_which_transformations=[Replace all transformations]");
+	run("Duplicate Transformations", "apply=[One channel to other channels] select=[file:/" + dataset_file + "] apply_to_angle=[All angles] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] source=" + source + " target=[All Channels] duplicate_which_transformations=[Replace all transformations]");
 }
 
 print("Finished applying transforms.\n");

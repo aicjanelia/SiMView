@@ -61,7 +61,7 @@ if (Choose_hdf5){
     	print("TIMEPOINT " + i);
 
 	    // Run hdf5 fusion
-	    run("Fuse dataset ...", "select=[" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] min=0 max=65535 export=HDF5 create hdf5_file=[" + output_dir + "fused.h5] xml_output_file=[" + output_dir + "fused.xml]");	
+	    run("Fuse dataset ...", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] min=0 max=65535 export=HDF5 create hdf5_file=[file:/" + output_dir + "fused.h5] xml_output_file=[file:/" + output_dir + "fused.xml]");	
 	    
     }
     
@@ -75,7 +75,7 @@ if (Choose_n5){
 	    print("TIMEPOINT " + i);
 	    
 	    // run n5 fusion
-	    run("Fuse dataset ...", "select=[" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] min=0 max=65535 export=N5 create n5_dataset_path=[" + output_dir + "fused.n5] xml_output_file=[" + output_dir + "fused.xml]");
+	    run("Fuse dataset ...", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] min=0 max=65535 export=N5 create n5_dataset_path=[file:/" + output_dir + "fused.n5] xml_output_file=[file:/" + output_dir + "fused.xml]");
 	
     }
     
@@ -87,7 +87,7 @@ if (Choose_tif){
 
     for (i=frameStart; i<frameEnd+1; ++i){
     	
-    	run("Fuse dataset ...", "select=[" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[Save as (compressed) TIFF stacks] define_input=[Auto-load from input data (values shown below)] output_file_directory=[" + output_dir + "] filename_addition=[]");
+    	run("Fuse dataset ...", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[Save as (compressed) TIFF stacks] define_input=[Auto-load from input data (values shown below)] output_file_directory=[file:/" + output_dir + "] filename_addition=[]");
 
     }
 

@@ -17,6 +17,6 @@ if (isNaN(zPix)){
 	exit("Error: Z Pixel Size must be entered.")
 }
 
-run("Specify Calibration", "select=[" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[All Timepoints] calibration_x=" + downsamp*xyPix + " calibration_y=" + downsamp*xyPix + " calibration_z=" + downsamp*zPix + " unit=um");
+run("Specify Calibration", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[All Timepoints] calibration_x=" + downsamp*xyPix + " calibration_y=" + downsamp*xyPix + " calibration_z=" + downsamp*zPix + " unit=um");
 
-run("Apply Transformations", "select=[" + dataset_file + "] apply_to_angle=[All angles] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] transformation=[Identity (no transformation)] apply=[Calibration (removes any existing transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels");
+run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[All angles] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] transformation=[Identity (no transformation)] apply=[Calibration (removes any existing transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels");
