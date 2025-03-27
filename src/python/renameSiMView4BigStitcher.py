@@ -30,7 +30,7 @@ def parse_filenames(path1):
 
     # First find all the timepoint folders
     tFolders = os.listdir(path1)
-    patternT = re.compile('TM(\d{5})')
+    patternT = re.compile(r'TM(\d{5})')
     tList = []
     for f in tFolders:
         m = patternT.fullmatch(f)
@@ -43,7 +43,7 @@ def parse_filenames(path1):
     tNow = 'TM'+str(tList[0])
     tfNow = path1 / tNow / 'ANG000'
     files = os.listdir(tfNow) # ASSUMPTION: one angle experiment set up
-    patternF = re.compile('SPC00_TM'+tList[0]+'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{4}).tif')
+    patternF = re.compile(r'SPC00_TM'+tList[0]+r'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{4}).tif')
     chList = []
     camList = []
     zList = []
@@ -80,7 +80,7 @@ def run_zFlip(path1):
 
         # tmp renaming
         files = os.listdir(tfNow) # ASSUMPTION: one angle experiment set up
-        patternF = re.compile('SPC00_TM'+tList[idx]+'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{4}).tif')
+        patternF = re.compile(r'SPC00_TM'+tList[idx]+r'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{4}).tif')
         for f in files:
             m = patternF.fullmatch(f)
             if m:
@@ -106,7 +106,7 @@ def run_zFlip(path1):
 
         # final renaming
         files = os.listdir(tfNow) # ASSUMPTION: one angle experiment set up
-        patternF = re.compile('SPC00_TM'+tList[idx]+'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{5}).tif')
+        patternF = re.compile(r'SPC00_TM'+tList[idx]+r'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{5}).tif')
         for f in files:
             m = patternF.fullmatch(f)
             if m:                
@@ -152,7 +152,7 @@ def run_cameraFlip(path1):
 
         # tmp renaming
         files = os.listdir(tfNow) # ASSUMPTION: one angle experiment set up
-        patternF = re.compile('SPC00_TM'+tList[idx]+'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{4}).tif')
+        patternF = re.compile(r'SPC00_TM'+tList[idx]+r'_ANG000_CM(\d)_CHN(\d{2})_PH0_PLN(\d{4}).tif')
         for f in files:
             m = patternF.fullmatch(f)
             if m:
@@ -178,7 +178,7 @@ def run_cameraFlip(path1):
 
         # final renaming
         files = os.listdir(tfNow) # ASSUMPTION: one angle experiment set up
-        patternF = re.compile('SPC00_TM'+tList[idx]+'_ANG000_CM(\d{3})_CHN(\d{2})_PH0_PLN(\d{4}).tif')
+        patternF = re.compile(r'SPC00_TM'+tList[idx]+r'_ANG000_CM(\d{3})_CHN(\d{2})_PH0_PLN(\d{4}).tif')
         for f in files:
             m = patternF.fullmatch(f)
             if m:
