@@ -33,6 +33,8 @@ Dialog.addCheckbox("Fuse to individual tif files",false);
 Dialog.addNumber("Downsample",1);
 Dialog.addString("Bounding Box", "All Views");
 Dialog.addDirectory("Folder to save fusion",output_dir);
+Dialog.addMessage("For hdf5 or n5:")
+Dialog.addString("Subsampling factors","{1,1,1}, {2,2,1}, {4,4,1}, {8,8,2}, {16,16,4}",30)
 Dialog.show();
 //dataset_file = Dialog.getString();
 frameStart = Dialog.getNumber();
@@ -43,12 +45,7 @@ Choose_tif = Dialog.getCheckbox();
 box = Dialog.getString();
 downsamp = Dialog.getNumber();
 output_dir = Dialog.getString();
-
-
-//Dialog.create("Fusion location");
-
-//Dialog.show();
-
+subsamp = Dialog.getString();
 
 if (!File.exists(output_dir)){
 	File.makeDirectory(output_dir);
@@ -56,50 +53,25 @@ if (!File.exists(output_dir)){
 }
 
 if (Choose_hdf5){
-    for (i=frameStart; i<frameEnd+1; ++i){  
-    	
-    	print("TIMEPOINT " + i);
 
-	    // Run hdf5 fusion
-	    run("Fuse dataset ...", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] min=0 max=65535 export=HDF5 create hdf5_file=[file:/" + output_dir + "fused.h5] xml_output_file=[file:/" + output_dir + "fused.xml]");	
-	    
-    }
-    
+	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Range of Timepoints (Specify by Name)] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[OME-ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] export=HDF5 compression=Zstandard create create_0 hdf5_file=[file:/" + output_dir + "fused.h5] xml_output_file=[file:/" + output_dir + "fused.xml] viewid_timepointid=0 viewid_setupid=0 subsampling_factors=[{ "+ subsamp +" }]");
+
     print("DONE\nWrote h5 and xml files to " + output_dir + "\n");
 
 }
 
 if (Choose_n5){
-    for (i=frameStart; i<frameEnd+1; ++i){  
 
-	    print("TIMEPOINT " + i);
-	    
-	    // run n5 fusion
-	    run("Fuse dataset ...", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] min=0 max=65535 export=N5 create n5_dataset_path=[file:/" + output_dir + "fused.n5] xml_output_file=[file:/" + output_dir + "fused.xml]");
-	
-    }
-    
+	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Range of Timepoints (Specify by Name)] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[OME-ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] export=N5 compression=Zstandard create create_0 n5_dataset_path=[file:/" + output_dir + "fused.n5]  xml_output_file=[file:/" + output_dir + "fused.xml] subsampling_factors=[{ "+ subsamp +" }]");
+
     print("DONE\nWrote n5 folder and xml file to " + output_dir + "\n");
 
 }
 
 if (Choose_tif){
 
-    for (i=frameStart; i<frameEnd+1; ++i){
-    	
-    	run("Fuse dataset ...", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Single Timepoint (Select from List)] processing_timepoint=[Timepoint " + i + "] bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] blend preserve_original produce=[Each timepoint & channel] fused_image=[Save as (compressed) TIFF stacks] define_input=[Auto-load from input data (values shown below)] output_file_directory=[file:/" + output_dir + "] filename_addition=[]");
+	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Range of Timepoints (Specify by Name)] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[Save as (compressed) TIFF stacks] define_input=[Auto-load from input data (values shown below)] output_file_directory=[" + output_dir + "] filename_addition=[]");
 
-    }
+	print("DONE\nWrote tif files to " + output_dir + "\n");
 
-print("DONE\nWrote tif files to " + output_dir + "\n");
-
-}
-
-// Converts 'n' to a string, left padding with zeros
-// so the length of the string is 'width'
-function leftPad(n, width) {
-    s =""+n;
-    while (lengthOf(s)<width)
-        s = "0"+s;
-    return s;
 }
