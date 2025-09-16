@@ -10,11 +10,13 @@ dataset_file = Dialog.getString();
 
 // Default values are empty to make user fill in
 width = NaN;
+height = NaN;
 maxT = NaN;
 maxZ = NaN;
 zStep = NaN;
 sepIllum = false;
 
+///////////////////////////////////// Metadata Parsing
 if (!parseMeta){
 	
 	// Use the images from timepoint 0 to grab metadata
@@ -50,6 +52,8 @@ if (!parseMeta){
 	startIndx = indexOf(xmlData,"<size>");
 	width = substring(xmlData,startIndx+6,startIndx+10);
 	width = parseFloat(width);
+	height = substring(xmlData,startIndx+11,startIndx+15);
+	height = parseFloat(height);
 	
 	// Use the xml to check for multiple illuminations
 	startIndx = indexOf(xmlData,"</Illumination></Attributes>");
@@ -91,8 +95,11 @@ Dialog.addNumber("Total Channels",chNum)
 Dialog.addNumber("Name of first channel",ch0)
 Dialog.addCheckbox("Multiple, separate illumination arms", sepIllum);
 Dialog.addMessage(" ");
-Dialog.addCheckbox("Flip camera 1 coordinate system",true);
+Dialog.addCheckbox("Flip camera 1 coordinate system around X",false);
 Dialog.addNumber("Image X Dimension (pixels)",width);
+Dialog.addMessage(" ");
+Dialog.addCheckbox("Flip camera 1 coordinate system around Y",true);
+Dialog.addNumber("Image Y Dimension (pixels)",height);
 Dialog.addMessage(" ");
 Dialog.addMessage("The following parameters are only necessary for excluded z-slices.");
 Dialog.addCheckbox("Transform the coordinate system for excluded z-slices", false);
@@ -110,15 +117,26 @@ sepIllum = Dialog.getCheckbox();
 // Camera transform
 flipCam = Dialog.getCheckbox();
 xDim = Dialog.getNumber();
+flipCamY = Dialog.getCheckbox();
+yDim = Dialog.getNumber();
 // Z transform
 flipZ = Dialog.getCheckbox();
 xyPix = Dialog.getNumber();
 zPix = Dialog.getNumber();
 maxZ = Dialog.getNumber();
 
+//print("Separate Illuminations");
+//print(sepIllum);
+//print("flip Camera X");
+//print(flipCam);
+//print("flip Camera Y");
+//print(flipCamY);
+//print("flipZ");
+//print(flipZ);
 
+///////////////////////////////////// Input Validation
 // Confirm valid inputs
-if (!flipCam && !flipZ){
+if (!flipCam && !flipCamY && !flipZ){
 	exit("No transformations requested. Exiting macro.")
 }
 if (isNaN(maxT) || maxT <= 0){
@@ -127,6 +145,11 @@ if (isNaN(maxT) || maxT <= 0){
 if (flipCam){
 	if (isNaN(xDim) || xDim <= 0){
 		exit("Invalid image x dimension. Check your inputs and try again.")
+	}
+}
+if (flipCamY){
+	if (isNaN(yDim) || yDim <= 0){
+		exit("Invalid image y dimension. Check your inputs and try again.")
 	}
 }
 if (flipZ){	
@@ -140,39 +163,75 @@ if (flipZ){
 		exit("Invalid number of z-slices. Check your inputs and try again.")
 	}
 	zShift = maxZ*zPix/xyPix;
+//	print("Translation in Z");
+//	print(zShift);
 }
 
-// Transform in z first, if requested
+/////////////////////////////////////  Transform in z first, if requested
 if (flipZ){ 
 	if (maxT==1){ // need to use special syntax for one timepoint
-		if (sepIllum){ // need to use syntax for multiple illuminations
-			// Flip Z
-			run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels same_transformation_for_all_illuminations timepoint_0_all_channels_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
-			
-			// Shift appropriately in Z
-			run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels same_transformation_for_all_illuminations timepoint_0_all_channels_all_illuminations_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
-		} else {
-			// Flip Z
-			run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels timepoint_0_all_channels_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
-			
-			// Shift appropriately in Z
-			run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels timepoint_0_all_channels_illumination_0_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
-			
+		if (chNum==1){ // need to use special syntax for one channel
+			if (sepIllum){ // need to use syntax for multiple illuminations
+				// Flip Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels same_transformation_for_all_illuminations timepoint_0_channel_" + ch0 + "_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
+				
+				// Shift appropriately in Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels same_transformation_for_all_illuminations timepoint_0_channel_" + ch0 + "_all_illuminations_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
+			} else {
+				// Flip Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels timepoint_0_channel_" + ch0 + "_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
+				
+				// Shift appropriately in Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels timepoint_0_channel_" + ch0 + "_illumination_0_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
+				
+			}
+		} else { // can use multi channel sytax
+			if (sepIllum){ // need to use syntax for multiple illuminations
+				// Flip Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels same_transformation_for_all_illuminations timepoint_0_all_channels_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
+				
+				// Shift appropriately in Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels same_transformation_for_all_illuminations timepoint_0_all_channels_all_illuminations_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
+			} else {
+				// Flip Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels timepoint_0_all_channels_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
+				
+				// Shift appropriately in Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels timepoint_0_all_channels_illumination_0_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
+				
+			}
 		}
 	} else { // can use all timepoints syntax
-		if (sepIllum){ // need to use syntax for multiple illuminations
-			// Flip Z
-			run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels same_transformation_for_all_illuminations all_timepoints_all_channels_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
-			
-			// Shift appropriately in Z
-			run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels same_transformation_for_all_illuminations all_timepoints_all_channels_all_illuminations_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
-		} else {
-			// Flip Z
-			run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels all_timepoints_all_channels_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
-			
-			// Shift appropriately in Z
-			run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels all_timepoints_all_channels_illumination_0_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
-			
+		if (chNum==1){ // need to use special syntax for one channel
+			if (sepIllum){ // need to use syntax for multiple illuminations
+				// Flip Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels same_transformation_for_all_illuminations all_timepoints_channel_" + ch0 + "_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
+				
+				// Shift appropriately in Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels same_transformation_for_all_illuminations all_timepoints_channel_" + ch0 + "_all_illuminations_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
+			} else {
+				// Flip Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels all_timepoints_channel_" + ch0 + "_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
+				
+				// Shift appropriately in Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels all_timepoints_channel_" + ch0 + "_illumination_0_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
+				
+			}
+		} else { // can use multichannel syntax
+			if (sepIllum){ // need to use syntax for multiple illuminations
+				// Flip Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels same_transformation_for_all_illuminations all_timepoints_all_channels_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
+				
+				// Shift appropriately in Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels same_transformation_for_all_illuminations all_timepoints_all_channels_all_illuminations_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
+			} else {
+				// Flip Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels all_timepoints_all_channels_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0]");
+				
+				// Shift appropriately in Z
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels all_timepoints_all_channels_illumination_0_angle_0-1=[0.0, 0.0, "+ zShift+ "]");
+				
+			}
 		}
 	}
 
@@ -180,7 +239,7 @@ if (flipZ){
 }
 
 
-// Transform camera if requested
+/////////////////////////////////////  Transform camera in X if requested
 if (flipCam){ 
 	if (maxT==1){ // need to use special syntax for one timepoint
 		if (chNum==1){ // need to use special syntax for one channel
@@ -251,6 +310,80 @@ if (flipCam){
 	}
 	
 	print("Camera 1 x-dimension flipped and shifted.");
+}
+
+
+/////////////////////////////////////  Transform camera in Y if requested
+if (flipCamY){ 
+	if (maxT==1){ // need to use special syntax for one timepoint
+		if (chNum==1){ // need to use special syntax for one channel
+			if (sepIllum){ // need to use separate syntax for multiple illuminations
+				// Flip in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_illuminations timepoint_0_channel_" + ch0 + "_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
+				
+				// Shift appropriately in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_illuminations timepoint_0_all_channel_" + ch0 + "_illuminations_angle_0-1=[0.0," + yDim + ", 0.0]");
+			} else {
+				// Flip in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] timepoint_0_channel_" + ch0 + "_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
+				
+				// Shift appropriately in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] timepoint_0_channel_" + ch0 + "_illumination_0_angle_0-1=[0.0," + yDim + ", 0.0]");
+			}
+		} else {
+			if (sepIllum){ // need to use separate syntax for multiple illuminations
+				// Flip in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels same_transformation_for_all_illuminations timepoint_0_all_channels_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
+				
+				// Shift appropriately in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels same_transformation_for_all_illuminations timepoint_0_all_channels_all_illuminations_angle_0-1=[0.0," + yDim + ", 0.0]");
+			} else {
+				// Flip in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels timepoint_0_all_channels_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
+				
+				// Shift appropriately in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_channels timepoint_0_all_channels_illumination_0_angle_0-1=[0.0," + yDim + ", 0.0]");
+			}
+		}
+		
+	} else { // can use all timepoints syntax
+		if (chNum==1){ // need to use special syntax for one channel
+				if (sepIllum){ // need to use separate syntax for multiple illuminations
+				// Flip in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_illuminations all_timepoints_channel_" + ch0 + "_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");				
+				
+				// Shift appropriately in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_illuminations all_timepoints_channel_" + ch0 + "_all_illuminations_angle_0-1=[0.0," + yDim + ", 0.0]");
+			
+			} else {
+				// Flip in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints all_timepoints_channel_" + ch0 + "_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
+				
+				// Shift appropriately in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints all_timepoints_channel_" + ch0 + "_illumination_0_angle_0-1=[0.0," + yDim + ", 0.0]");
+				
+			}
+		} else {
+			if (sepIllum){ // need to use separate syntax for multiple illuminations
+				// Flip in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels same_transformation_for_all_illuminations all_timepoints_all_channels_all_illuminations_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
+				
+				
+				// Shift appropriately in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels same_transformation_for_all_illuminations all_timepoints_all_channels_all_illuminations_angle_0-1=[0.0," + yDim + ", 0.0]");
+			
+			} else {
+				// Flip in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Affine apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels all_timepoints_all_channels_illumination_0_angle_0-1=[1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
+				
+				// Shift appropriately in X
+				run("Apply Transformations", "select=[file:/" + dataset_file + "] apply_to_angle=[Single angle (Select from List)] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] processing_angle=[angle 0-1] transformation=Translation apply=[Current view transformations (appends to current transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels all_timepoints_all_channels_illumination_0_angle_0-1=[0.0," + yDim + ", 0.0]");
+				
+			}
+		}
+	}
+	
+	print("Camera 1 y-dimension flipped and shifted.");
 }
 
 

@@ -1,10 +1,13 @@
 //Simplified fusion menu options specific to the SiMView
+
+/////////////////////////////////////// Dialog Window 1
 // Start by getting the appropriate XML file
 Dialog.create("Fusion Parameters");
 Dialog.addFile("XML file to process","");
 Dialog.show();
 dataset_file = Dialog.getString();
 
+/////////////////////////////////////// Metadata Parsing
 // Get the number of time points
 dirIm = File.getDirectory(dataset_file);
 list = getFileList(dirIm);
@@ -19,6 +22,14 @@ for (i=0; i<list.length; ++i){
 	}
 }
 
+// Get the z-spacing
+xmlData = File.openAsString(dataset_file);
+startIndx = indexOf(xmlData,"<voxelSize>");
+zStep = substring(xmlData,startIndx+68,startIndx+71);
+zStep = parseFloat(zStep);
+xyStep = substring(xmlData,startIndx+61,startIndx+68);
+xyStep = parseFloat(xyStep);
+
 // Set up the output directory
 output_dir = File.getDirectory(dataset_file);
 output_dir = output_dir + "fused";
@@ -30,6 +41,10 @@ Dialog.addNumber("Last frame to fuse", maxT);
 Dialog.addCheckbox("Fuse to BDV hdf5",true);
 Dialog.addCheckbox("Fuse to BDV n5",false);
 Dialog.addCheckbox("Fuse to individual tif files",false);
+Dialog.addMessage("SiMView Aquisition Pixel Sizes");
+Dialog.addNumber("XY Pixel Size", xyStep);
+Dialog.addNumber("Z Pixel Size", zStep);
+Dialog.addMessage("Optional Parameters");
 Dialog.addNumber("Downsample",1);
 Dialog.addString("Bounding Box", "All Views");
 Dialog.addDirectory("Folder to save fusion",output_dir);
@@ -42,6 +57,8 @@ frameEnd = Dialog.getNumber();
 Choose_hdf5 = Dialog.getCheckbox();
 Choose_n5 = Dialog.getCheckbox();
 Choose_tif = Dialog.getCheckbox();
+xyPix = Dialog.getNumber();
+zPix = Dialog.getNumber();
 box = Dialog.getString();
 downsamp = Dialog.getNumber();
 output_dir = Dialog.getString();
@@ -51,18 +68,23 @@ if (!File.exists(output_dir)){
 	File.makeDirectory(output_dir);
 	print("Making directory " + output_dir);
 }
+if (isNaN(zPix)){
+	exit("Error: Z Pixel Size must be entered.")
+}
+
+/////////////////////////////////////// Run the appropriate fusions
 
 if (Choose_hdf5){
 
-	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Range of Timepoints (Specify by Name)] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[OME-ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] export=HDF5 compression=Zstandard create create_0 hdf5_file=[file:/" + output_dir + "fused.h5] xml_output_file=[file:/" + output_dir + "fused.xml] viewid_timepointid=0 viewid_setupid=0 subsampling_factors=[{ "+ subsamp +" }]");
-
+	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Range of Timepoints (Specify by Name)] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[OME-ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] export=HDF5 compression=Zstandard create_a_bdv/bigstitcher create_multi-resolution hdf5_file=[file:/" + output_dir + "fused.h5] xml_output_file=[file:/" + output_dir + "fused.xml] viewid_timepointid=0 viewid_setupid=0 subsampling_factors=[{ "+ subsamp +" }]");
+    
     print("DONE\nWrote h5 and xml files to " + output_dir + "\n");
 
 }
 
 if (Choose_n5){
 
-	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Range of Timepoints (Specify by Name)] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[OME-ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] export=N5 compression=Zstandard create create_0 n5_dataset_path=[file:/" + output_dir + "fused.n5]  xml_output_file=[file:/" + output_dir + "fused.xml] subsampling_factors=[{ "+ subsamp +" }]");
+	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Range of Timepoints (Specify by Name)] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[OME-ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] export=N5 compression=Zstandard create_a_bdv/bigstitcher create_multi-resolution n5_dataset_path=[file:/" + output_dir + "fused.n5]  xml_output_file=[file:/" + output_dir + "fused.xml] subsampling_factors=[{ "+ subsamp +" }]");
 
     print("DONE\nWrote n5 folder and xml file to " + output_dir + "\n");
 
@@ -75,3 +97,13 @@ if (Choose_tif){
 	print("DONE\nWrote tif files to " + output_dir + "\n");
 
 }
+
+
+/////////////////////////////////////// Apply the pixel calibration if appropriate
+if (Choose_hdf5 || Choose_n5) {
+	
+	run("Specify Calibration", "select=[file:/" + output_dir + "fused.xml] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[All Timepoints] calibration_x=" + downsamp*xyPix + " calibration_y=" + downsamp*xyPix + " calibration_z=" + downsamp*zPix + " unit=um");
+
+	run("Apply Transformations", "select=[file:/" + output_dir + "fused.xml] apply_to_angle=[All angles] apply_to_channel=[All channels] apply_to_illumination=[All illuminations] apply_to_tile=[All tiles] apply_to_timepoint=[All Timepoints] transformation=[Identity (no transformation)] apply=[Calibration (removes any existing transforms)] same_transformation_for_all_timepoints same_transformation_for_all_channels");
+}
+
