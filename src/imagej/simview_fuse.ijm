@@ -40,6 +40,7 @@ Dialog.addNumber("First frame to fuse", 0);
 Dialog.addNumber("Last frame to fuse", maxT);
 Dialog.addCheckbox("Fuse to BDV hdf5",true);
 Dialog.addCheckbox("Fuse to BDV n5",false);
+Dialog.addCheckbox("Fuse to BDV OME-ZARR",false);
 Dialog.addCheckbox("Fuse to individual tif files",false);
 Dialog.addMessage("SiMView Aquisition Pixel Sizes");
 Dialog.addNumber("XY Pixel Size", xyStep);
@@ -56,6 +57,7 @@ frameStart = Dialog.getNumber();
 frameEnd = Dialog.getNumber();
 Choose_hdf5 = Dialog.getCheckbox();
 Choose_n5 = Dialog.getCheckbox();
+Choose_zarr = Dialog.getCheckbox();
 Choose_tif = Dialog.getCheckbox();
 xyPix = Dialog.getNumber();
 zPix = Dialog.getNumber();
@@ -90,6 +92,14 @@ if (Choose_n5){
 
 }
 
+if (Choose_zarr){
+	
+	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[OME-ZARR/N5/HDF5 export using N5-API] define_input=[Auto-load from input data (values shown below)] export=OME-ZARR compression=Zstandard create_a_bdv/bigstitcher create_multi-resolution store zarr_dataset_path=[file:/" + output_dir + "fused.zarr xml_output_file=[file:/" + output_dir + "fused.xml] subsampling_factors=[{ "+ subsamp +" }]");
+
+    print("DONE\nWrote n5 folder and xml file to " + output_dir + "\n");
+
+}
+
 if (Choose_tif){
 
 	run("Image Fusion", "select=[file:/" + dataset_file + "] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[Range of Timepoints (Specify by Name)] process_following_timepoints=" + frameStart + "-" + frameEnd + " bounding_box=[" + box + "] downsampling=" + downsamp + " interpolation=[Linear Interpolation] fusion_type=[Avg, Blending] pixel_type=[16-bit unsigned integer] interest_points_for_non_rigid=[-= Disable Non-Rigid =-] preserve_original produce=[Each timepoint & channel] fused_image=[Save as (compressed) TIFF stacks] define_input=[Auto-load from input data (values shown below)] output_file_directory=[" + output_dir + "] filename_addition=[]");
@@ -100,7 +110,7 @@ if (Choose_tif){
 
 
 /////////////////////////////////////// Apply the pixel calibration if appropriate
-if (Choose_hdf5 || Choose_n5) {
+if (Choose_hdf5 || Choose_n5 || Choose_zarr) {
 	
 	run("Specify Calibration", "select=[file:/" + output_dir + "fused.xml] process_angle=[All angles] process_channel=[All channels] process_illumination=[All illuminations] process_tile=[All tiles] process_timepoint=[All Timepoints] calibration_x=" + downsamp*xyPix + " calibration_y=" + downsamp*xyPix + " calibration_z=" + downsamp*zPix + " unit=um");
 
