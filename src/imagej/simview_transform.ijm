@@ -17,6 +17,8 @@ zStep = NaN;
 sepIllum = false;
 
 ///////////////////////////////////// Metadata Parsing
+chNum = NaN;
+ch0 = NaN;
 if (!parseMeta){
 	
 	// Use the images from timepoint 0 to grab metadata
